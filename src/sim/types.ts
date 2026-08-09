@@ -45,6 +45,14 @@ export interface Track {
   pitLoss: number
   /** Probabilidad por vuelta de coche de seguridad (0-1). */
   safetyCarChance: number
+  /** Tendencia a la lluvia de la pista (0-1). */
+  rainChance: number
+}
+
+export interface WeatherState {
+  raining: boolean
+  /** Nivel de agua en pista, 0 (seco) a 1 (empapado). */
+  wetness: number
 }
 
 export interface EntrantSetup {
@@ -87,7 +95,7 @@ export interface LiveEntrant {
 
 export interface RaceEvent {
   lap: number
-  kind: 'pit' | 'overtake' | 'retire' | 'safetycar' | 'finish' | 'info'
+  kind: 'pit' | 'overtake' | 'retire' | 'safetycar' | 'weather' | 'finish' | 'info'
   entrantId?: string
   message: string
 }
@@ -99,5 +107,6 @@ export interface RaceState {
   entrants: LiveEntrant[]
   events: RaceEvent[]
   safetyCar: number // vueltas restantes de SC (0 = sin SC)
+  weather: WeatherState
   finished: boolean
 }

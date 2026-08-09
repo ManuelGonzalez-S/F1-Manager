@@ -8,8 +8,10 @@ import { RaceScreen } from './screens/RaceScreen'
 import type { RaceOutcome } from './screens/RaceScreen'
 import { ResultsScreen } from './screens/ResultsScreen'
 import { StandingsScreen } from './screens/StandingsScreen'
+import { DriverMarketScreen } from './screens/DriverMarketScreen'
+import { SponsorsScreen } from './screens/SponsorsScreen'
 
-export type Screen = 'menu' | 'home' | 'garage' | 'standings' | 'race' | 'results'
+export type Screen = 'menu' | 'home' | 'garage' | 'standings' | 'market' | 'sponsors' | 'race' | 'results'
 
 export function App() {
   const [screen, setScreen] = useState<Screen>('menu')
@@ -44,6 +46,8 @@ export function App() {
           game={game}
           onGarage={() => setScreen('garage')}
           onStandings={() => setScreen('standings')}
+          onMarket={() => setScreen('market')}
+          onSponsors={() => setScreen('sponsors')}
           onRace={() => setScreen('race')}
           onQuit={() => setScreen('menu')}
         />
@@ -53,6 +57,12 @@ export function App() {
       )}
       {screen === 'standings' && game && (
         <StandingsScreen game={game} onBack={() => setScreen('home')} />
+      )}
+      {screen === 'market' && game && (
+        <DriverMarketScreen game={game} setGame={setGame} onBack={() => setScreen('home')} />
+      )}
+      {screen === 'sponsors' && game && (
+        <SponsorsScreen game={game} setGame={setGame} onBack={() => setScreen('home')} />
       )}
       {screen === 'race' && game && (
         <RaceScreen

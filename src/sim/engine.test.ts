@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { createRace, makeRng, qualify, simulateLap } from './engine'
+import { weatherPenalty } from './tyres'
 import type { EntrantSetup, TyreCompound } from './types'
 import { TRACKS } from '../game/data'
 
@@ -61,17 +62,28 @@ describe('motor de carrera', () => {
   })
 
   it('el neumático blando se degrada más rápido que el duro', () => {
-    const soft = [mkEntrant('s', 60, false, 'soft')]
-    const hard = [mkEntrant('h', 60, false, 'hard')]
-    const rng = makeRng(9)
-    const rs = createRace(qualify(soft, track, 1), track)
-    const rh = createRace(qualify(hard, track, 1), track)
+    // Pista seca y coches "del jugador" (sin IA de paradas) para aislar el desgaste
+    const dry = { ...track, rainChance: 0 }
+    const soft = [mkEntrant('s', 60, true, 'soft')]
+    const hard = [mkEntrant('h', 60, true, 'hard')]
+    const rs = createRace(qualify(soft, dry, 1), dry)
+    const rh = createRace(qualify(hard, dry, 1), dry)
+    // rng independiente por carrera con la misma semilla → comparación justa
+    const rngS = makeRng(9)
+    const rngH = makeRng(9)
     // Rodamos más allá del "acantilado" del blando (baseLife 14)
     for (let i = 0; i < 17; i++) {
-      simulateLap(rs, rng)
-      simulateLap(rh, rng)
+      simulateLap(rs, rngS)
+      simulateLap(rh, rngH)
     }
     // Pasado su acantilado, el blando gastado debe ir claramente más lento que el duro
     expect(rs.entrants[0].lastLapTime).toBeGreaterThan(rh.entrants[0].lastLapTime)
+  })
+
+  it('con lluvia el neumático de agua bate al slick; en seco es al revés', () => {
+    // Pista muy mojada
+    expect(weatherPenalty('wet', 1)).toBeLessThan(weatherPenalty('medium', 1))
+    // Pista seca
+    expect(weatherPenalty('medium', 0)).toBeLessThan(weatherPenalty('wet', 0))
   })
 })
