@@ -105,6 +105,7 @@ export function createRace(
     mode: 'balanced',
     pitStops: 0,
     pendingPit: null,
+    plan: [],
     retired: false,
     gapToLeader: 0,
     lastLapTime: 0,
@@ -186,6 +187,15 @@ export function simulateLap(state: RaceState, rng: () => number): RaceState {
       e.retired = true
       events.push({ lap, kind: 'retire', entrantId: e.id, message: `💥 ${e.name} abandona (fallo mecánico).` })
       continue
+    }
+
+    // Parada programada por el jugador para esta vuelta
+    if (e.plan.length && !e.pendingPit) {
+      const idx = e.plan.findIndex((p) => p.lap === lap)
+      if (idx >= 0) {
+        e.pendingPit = e.plan[idx].compound
+        e.plan = e.plan.filter((_, i) => i !== idx)
+      }
     }
 
     // IA de estrategia de los rivales (el jugador decide sus propias paradas)

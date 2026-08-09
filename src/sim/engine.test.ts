@@ -80,6 +80,22 @@ describe('motor de carrera', () => {
     expect(rs.entrants[0].lastLapTime).toBeGreaterThan(rh.entrants[0].lastLapTime)
   })
 
+  it('una parada programada se ejecuta sola en su vuelta', () => {
+    const dry = { ...track, rainChance: 0 }
+    const field = [mkEntrant('a', 60, true, 'soft')]
+    const race = createRace(qualify(field, dry, 1), dry)
+    const car = race.entrants[0]
+    car.plan = [{ lap: 4, compound: 'hard' }]
+    const rng = makeRng(3)
+    for (let i = 0; i < 3; i++) simulateLap(race, rng) // vueltas 1-3
+    expect(car.pitStops).toBe(0)
+    expect(car.tyre).toBe('soft')
+    simulateLap(race, rng) // vuelta 4: debe parar
+    expect(car.pitStops).toBe(1)
+    expect(car.tyre).toBe('hard')
+    expect(car.plan).toHaveLength(0)
+  })
+
   it('con lluvia el neumático de agua bate al slick; en seco es al revés', () => {
     // Pista muy mojada
     expect(weatherPenalty('wet', 1)).toBeLessThan(weatherPenalty('medium', 1))
