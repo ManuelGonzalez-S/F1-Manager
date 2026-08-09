@@ -7,8 +7,9 @@ import { GarageScreen } from './screens/GarageScreen'
 import { RaceScreen } from './screens/RaceScreen'
 import type { RaceOutcome } from './screens/RaceScreen'
 import { ResultsScreen } from './screens/ResultsScreen'
+import { StandingsScreen } from './screens/StandingsScreen'
 
-export type Screen = 'menu' | 'home' | 'garage' | 'race' | 'results'
+export type Screen = 'menu' | 'home' | 'garage' | 'standings' | 'race' | 'results'
 
 export function App() {
   const [screen, setScreen] = useState<Screen>('menu')
@@ -42,12 +43,16 @@ export function App() {
         <HomeScreen
           game={game}
           onGarage={() => setScreen('garage')}
+          onStandings={() => setScreen('standings')}
           onRace={() => setScreen('race')}
           onQuit={() => setScreen('menu')}
         />
       )}
       {screen === 'garage' && game && (
         <GarageScreen game={game} setGame={setGame} onBack={() => setScreen('home')} />
+      )}
+      {screen === 'standings' && game && (
+        <StandingsScreen game={game} onBack={() => setScreen('home')} />
       )}
       {screen === 'race' && game && (
         <RaceScreen

@@ -6,11 +6,13 @@ import { Money } from '../components/Money'
 export function HomeScreen({
   game,
   onGarage,
+  onStandings,
   onRace,
   onQuit,
 }: {
   game: GameState
   onGarage: () => void
+  onStandings: () => void
   onRace: () => void
   onQuit: () => void
 }) {
@@ -57,9 +59,13 @@ export function HomeScreen({
               </button>
             </>
           ) : (
-            <div className="muted">Temporada completada. (Progresión de campeonato próximamente.)</div>
+            <div className="muted">Temporada completada.</div>
           )}
         </div>
+
+        <button className="btn accent" style={{ marginBottom: 14 }} onClick={onStandings}>
+          🏆 Ver campeonato
+        </button>
 
         <div className="card">
           <h2>Pilotos</h2>
