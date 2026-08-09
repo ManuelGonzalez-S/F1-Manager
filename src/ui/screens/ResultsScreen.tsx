@@ -1,6 +1,15 @@
 import { useMemo } from 'react'
-import type { GameState } from '../../game/state'
-import { POINTS_TABLE, currentCategory } from '../../game/state'
+import type { GameState, TeamStanding } from '../../game/state'
+import {
+  POINTS_TABLE,
+  PROMOTION_RANK,
+  currentCategory,
+  generateRivals,
+  improveRivals,
+  nextCategory,
+  teamStandings,
+} from '../../game/state'
+import { makeRng } from '../../sim/engine'
 import { Money } from '../components/Money'
 import type { RaceOutcome } from './RaceScreen'
 
@@ -31,18 +40,17 @@ export function ResultsScreen({
         prize += cat.prizeMoney[r.position - 1] ?? 5_000
       }
     }
-    // Costes de fin de semana (logística + salarios prorrateados)
     const costs = 25_000 + game.drivers.reduce((s, d) => s + Math.round(d.salary / game.calendar.length), 0)
 
     const nextRound = game.round + 1
     const seasonOver = nextRound >= game.calendar.length
 
-    const newState: GameState = {
+    // Estado base tras la carrera
+    let newState: GameState = {
       ...game,
       money: game.money + prize - costs,
-      round: seasonOver ? 0 : nextRound,
-      season: seasonOver ? game.season + 1 : game.season,
-      points: seasonOver ? {} : nextPoints,
+      round: nextRound,
+      points: nextPoints,
       history: [
         ...game.history,
         {
@@ -57,7 +65,40 @@ export function ResultsScreen({
         },
       ],
     }
-    return { playerResults, prize, costs, newState, seasonOver }
+
+    let finalStandings: TeamStanding[] = []
+    let finalRank = 0
+    let promoted = false
+    let nextCatName: string | null = null
+
+    if (seasonOver) {
+      finalStandings = teamStandings({ ...game, points: nextPoints })
+      finalRank = finalStandings.findIndex((t) => t.isPlayer) + 1
+      const next = nextCategory(game)
+      const rng = makeRng((game.season * 9973 + game.calendar.length * 131 + 7) >>> 0)
+
+      let newCategoryId = game.categoryId
+      let newRivals = game.rivals
+      if (next && finalRank > 0 && finalRank <= PROMOTION_RANK) {
+        promoted = true
+        newCategoryId = next.id
+        nextCatName = next.name
+        newRivals = generateRivals(rng, next.rivalLevel)
+      } else {
+        newRivals = improveRivals(rng, game.rivals)
+      }
+
+      newState = {
+        ...newState,
+        season: game.season + 1,
+        round: 0,
+        points: {},
+        categoryId: newCategoryId,
+        rivals: newRivals,
+      }
+    }
+
+    return { playerResults, prize, costs, newState, seasonOver, finalStandings, finalRank, promoted, nextCatName }
   }, [])
 
   function handleContinue() {
@@ -67,6 +108,8 @@ export function ResultsScreen({
 
   const best = Math.min(...summary.playerResults.filter((r) => !r.retired).map((r) => r.position), 99)
   const podium = best <= 3
+  const net = summary.prize - summary.costs
+  const isChampion = summary.seasonOver && summary.finalRank === 1
 
   return (
     <>
@@ -109,18 +152,57 @@ export function ResultsScreen({
           </div>
           <div className="row" style={{ padding: '10px 0 0', borderTop: '1px solid var(--line)', marginTop: 6, fontWeight: 700 }}>
             <span>Neto</span>
-            <span style={{ color: summary.prize - summary.costs >= 0 ? 'var(--good)' : 'var(--bad)' }}>
-              {summary.prize - summary.costs >= 0 ? '+' : ''}
-              <Money v={summary.prize - summary.costs} />
+            <span style={{ color: net >= 0 ? 'var(--good)' : 'var(--bad)' }}>
+              {net >= 0 ? '+' : ''}
+              <Money v={net} />
             </span>
           </div>
         </div>
 
         {summary.seasonOver && (
-          <div className="card" style={{ borderColor: 'var(--accent)' }}>
-            <h2>🏁 Fin de temporada {game.season}</h2>
-            <p className="muted">¡Empieza la temporada {game.season + 1}! Los puntos se reinician.</p>
-          </div>
+          <>
+            <div className="card" style={{ borderColor: summary.promoted ? 'var(--good)' : isChampion ? 'var(--warn)' : 'var(--accent)' }}>
+              <h2>🏁 Fin de temporada {game.season} · {cat.name}</h2>
+              <div className="result-pos" style={{ fontSize: 30 }}>
+                {summary.finalRank}º en constructores
+              </div>
+              {summary.promoted ? (
+                <p style={{ color: 'var(--good)', fontWeight: 700, textAlign: 'center', marginTop: 6 }}>
+                  ⬆️ ¡ASCENSO! Subes a {summary.nextCatName}
+                </p>
+              ) : isChampion && !nextCategory(game) ? (
+                <p style={{ color: 'var(--warn)', fontWeight: 700, textAlign: 'center', marginTop: 6 }}>
+                  👑 ¡Campeones en la máxima categoría!
+                </p>
+              ) : (
+                <p className="muted" style={{ textAlign: 'center', marginTop: 6 }}>
+                  {nextCategory(game)
+                    ? `Necesitas acabar top-${PROMOTION_RANK} para ascender. Los rivales mejorarán su coche.`
+                    : 'Sigue peleando por el título.'}
+                </p>
+              )}
+            </div>
+
+            <div className="card">
+              <h2>Campeonato de constructores</h2>
+              {summary.finalStandings.map((t, i) => (
+                <div
+                  className="row"
+                  key={t.teamId}
+                  style={{
+                    padding: '7px 0',
+                    color: t.isPlayer ? 'var(--accent-2)' : undefined,
+                    fontWeight: t.isPlayer ? 700 : 400,
+                    borderBottom: i < summary.finalStandings.length - 1 ? '1px solid var(--line)' : 'none',
+                  }}
+                >
+                  <b style={{ width: 28 }}>{i + 1}</b>
+                  <span style={{ flex: 1 }}>{t.name}</span>
+                  <span>{t.points} pts</span>
+                </div>
+              ))}
+            </div>
+          </>
         )}
 
         <button className="btn primary" onClick={handleContinue}>

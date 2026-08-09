@@ -34,7 +34,7 @@ export function RaceScreen({ game, onFinish }: { game: GameState; onFinish: (o: 
   // Inicialización única: parrilla + clasificación
   if (!raceRef.current) {
     const seed = (game.season * 1000 + game.round * 37 + track.name.length * 13) >>> 0
-    const field = buildField(game, cat, seed)
+    const field = buildField(game, seed)
     const qualified = qualify(field, track, seed + 1)
     raceRef.current = createRace(qualified, track)
     rngRef.current = makeRng(seed + 2)
