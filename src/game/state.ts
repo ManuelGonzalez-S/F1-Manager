@@ -24,6 +24,23 @@ export interface RivalTeam {
   drivers: RivalDriver[] // 2 pilotos por equipo
 }
 
+export interface MarketDriver extends DriverStats {
+  id: string
+  name: string
+  salary: number // coste por temporada si lo fichas
+  fee: number // prima de fichaje (pago único)
+}
+
+export interface Sponsor {
+  id: string
+  name: string
+  signingBonus: number // pago único al firmar
+  perRaceObjective: number // el mejor coche debe acabar en este puesto o mejor
+  perRacePayout: number // pago por carrera si se cumple el objetivo
+  seasonObjective: number // puesto de constructores o mejor al final de temporada
+  seasonBonus: number // bono de fin de temporada si se cumple
+}
+
 export interface SeasonResult {
   round: number
   trackName: string
@@ -40,6 +57,9 @@ export interface GameState {
   car: PlayerCar
   drivers: Driver[] // exactamente 2 titulares
   rivals: RivalTeam[] // equipos rivales persistentes de la temporada
+  market: MarketDriver[] // pilotos libres disponibles para fichar
+  sponsor: Sponsor | null // patrocinador principal de la temporada
+  sponsorOffers: Sponsor[] // ofertas disponibles a elegir
   points: Record<string, number> // entrantId -> puntos de campeonato (pilotos)
   history: SeasonResult[]
 }
@@ -82,6 +102,78 @@ export function improveRivals(rng: () => number, rivals: RivalTeam[]): RivalTeam
   }))
 }
 
+// ---- Patrocinadores ----
+const SPONSOR_NAMES = ['Meridian Bank', 'NovaTech', 'Volt Energy', 'AeroDyne', 'Kestrel Oil', 'Lumen', 'Orbita Telecom', 'Ferro Steel']
+
+export function generateSponsorOffers(rng: () => number, prizeP1: number): Sponsor[] {
+  const pick = () => SPONSOR_NAMES[Math.floor(rng() * SPONSOR_NAMES.length)]
+  const jitter = () => 0.9 + rng() * 0.2
+  const archetypes = [
+    { tag: 'Conservador', signing: 0.6, perObj: 8, perPay: 0.1, seasonObj: 4, seasonBonus: 0.4 },
+    { tag: 'Equilibrado', signing: 0.4, perObj: 5, perPay: 0.18, seasonObj: 3, seasonBonus: 0.9 },
+    { tag: 'Ambicioso', signing: 0.2, perObj: 3, perPay: 0.3, seasonObj: 1, seasonBonus: 1.8 },
+  ]
+  return archetypes.map((a) => ({
+    id: uid('spo', rng),
+    name: `${pick()} · ${a.tag}`,
+    signingBonus: Math.round(prizeP1 * a.signing * jitter()),
+    perRaceObjective: a.perObj,
+    perRacePayout: Math.round(prizeP1 * a.perPay * jitter()),
+    seasonObjective: a.seasonObj,
+    seasonBonus: Math.round(prizeP1 * a.seasonBonus * jitter()),
+  }))
+}
+
+/** Firma un patrocinador: cobra la prima y fija el contrato de la temporada. */
+export function signSponsor(state: GameState, sponsorId: string): GameState | null {
+  const s = state.sponsorOffers.find((o) => o.id === sponsorId)
+  if (!s) return null
+  return { ...state, money: state.money + s.signingBonus, sponsor: s, sponsorOffers: [] }
+}
+
+// ---- Mercado de pilotos ----
+export function driverOverall(d: DriverStats): number {
+  return Math.round((d.pace + d.consistency + d.tyreManagement) / 3)
+}
+export function driverSalary(d: DriverStats): number {
+  return Math.round(driverOverall(d) * 700)
+}
+export function driverFee(d: DriverStats): number {
+  const o = driverOverall(d)
+  return Math.round(o * o * 45)
+}
+
+export function generateMarket(rng: () => number, level: number, count = 4): MarketDriver[] {
+  return Array.from({ length: count }, () => {
+    // Variedad: algunos por debajo del nivel, alguna joven promesa por encima
+    const bias = level + (rng() - 0.4) * 22
+    const s = randomDriver(rng, bias)
+    return { id: uid('mkt', rng), name: driverName(rng), ...s, salary: driverSalary(s), fee: driverFee(s) }
+  })
+}
+
+/** Ficha un piloto del mercado en el slot indicado (0 o 1). Devuelve el nuevo estado o null si no hay dinero. */
+export function signDriver(state: GameState, marketId: string, slot: 0 | 1): GameState | null {
+  const m = state.market.find((d) => d.id === marketId)
+  if (!m || state.money < m.fee) return null
+  const newDriver: Driver = {
+    id: m.id,
+    name: m.name,
+    pace: m.pace,
+    consistency: m.consistency,
+    tyreManagement: m.tyreManagement,
+    salary: m.salary,
+  }
+  const drivers = [...state.drivers]
+  drivers[slot] = newDriver
+  return {
+    ...state,
+    money: state.money - m.fee,
+    drivers,
+    market: state.market.filter((d) => d.id !== marketId),
+  }
+}
+
 export function newGame(teamName: string): GameState {
   const rng = makeRng(Date.now() % 2147483647 || 12345)
   const cat = CATEGORIES[0]
@@ -101,6 +193,9 @@ export function newGame(teamName: string): GameState {
     car,
     drivers,
     rivals: generateRivals(rng, cat.rivalLevel),
+    market: generateMarket(rng, cat.rivalLevel),
+    sponsor: null,
+    sponsorOffers: generateSponsorOffers(rng, cat.prizeMoney[0]),
     points: {},
     history: [],
   }
@@ -158,10 +253,17 @@ export function loadGame(): GameState | null {
     const raw = localStorage.getItem(SAVE_KEY)
     if (!raw) return null
     const state = JSON.parse(raw) as GameState
-    // Migración: partidas antiguas sin rivales persistentes
+    // Migración: partidas antiguas sin rivales persistentes / mercado
+    const cat = CATEGORIES.find((c) => c.id === state.categoryId) ?? CATEGORIES[0]
     if (!state.rivals || state.rivals.length === 0) {
-      const cat = CATEGORIES.find((c) => c.id === state.categoryId) ?? CATEGORIES[0]
       state.rivals = generateRivals(makeRng(state.season * 9973 + 1), cat.rivalLevel)
+    }
+    if (!state.market) {
+      state.market = generateMarket(makeRng(state.season * 7919 + 3), cat.rivalLevel)
+    }
+    if (state.sponsor === undefined) state.sponsor = null
+    if (!state.sponsorOffers) {
+      state.sponsorOffers = state.sponsor ? [] : generateSponsorOffers(makeRng(state.season * 6151 + 5), cat.prizeMoney[0])
     }
     return state
   } catch {

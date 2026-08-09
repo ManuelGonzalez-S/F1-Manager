@@ -7,12 +7,16 @@ export function HomeScreen({
   game,
   onGarage,
   onStandings,
+  onMarket,
+  onSponsors,
   onRace,
   onQuit,
 }: {
   game: GameState
   onGarage: () => void
   onStandings: () => void
+  onMarket: () => void
+  onSponsors: () => void
   onRace: () => void
   onQuit: () => void
 }) {
@@ -63,9 +67,26 @@ export function HomeScreen({
           )}
         </div>
 
-        <button className="btn accent" style={{ marginBottom: 14 }} onClick={onStandings}>
-          🏆 Ver campeonato
-        </button>
+        {!game.sponsor && (
+          <div className="card" style={{ borderColor: 'var(--warn)' }}>
+            <div className="row">
+              <div className="col">
+                <div style={{ fontWeight: 700 }}>🎯 Sin patrocinador</div>
+                <span className="muted">Firma uno para esta temporada y cobra la prima.</span>
+              </div>
+              <button className="btn accent sm" onClick={onSponsors}>
+                Elegir
+              </button>
+            </div>
+          </div>
+        )}
+
+        <div className="grid2" style={{ marginBottom: 14 }}>
+          <button className="btn sm" onClick={onStandings}>🏆 Campeonato</button>
+          <button className="btn sm" onClick={onMarket}>👥 Mercado</button>
+          <button className="btn sm" onClick={onSponsors}>🎯 Patrocinadores</button>
+          <button className="btn sm" onClick={onGarage}>🔧 Garaje / I+D</button>
+        </div>
 
         <div className="card">
           <h2>Pilotos</h2>
@@ -84,16 +105,11 @@ export function HomeScreen({
 
         <div className="card">
           <h2>Coche · {game.car.name}</h2>
-          <div className="grid2">
-            <StatMini label="Motor" v={game.car.power} />
-            <StatMini label="Aero" v={game.car.aero} />
-            <StatMini label="Fiabilidad" v={game.car.reliability} />
-            <div style={{ display: 'grid', placeItems: 'center' }}>
-              <button className="btn accent sm" onClick={onGarage}>
-                🔧 Garaje / I+D
-              </button>
-            </div>
-          </div>
+          <StatMini label="Motor" v={game.car.power} />
+          <div style={{ height: 10 }} />
+          <StatMini label="Aero" v={game.car.aero} />
+          <div style={{ height: 10 }} />
+          <StatMini label="Fiabilidad" v={game.car.reliability} />
         </div>
       </div>
     </>

@@ -6,8 +6,9 @@ import type {
   RaceState,
   Track,
   TyreCompound,
+  WeatherState,
 } from './types'
-import { TYRES } from './tyres'
+import { TYRES, weatherPenalty } from './tyres'
 
 // ---- RNG determinista (mulberry32) para carreras reproducibles ----
 export function makeRng(seed: number) {
@@ -74,7 +75,19 @@ export function qualify(setups: EntrantSetup[], track: Track, seed: number): Ent
   return scored.map(({ s }, i) => ({ ...s, grid: i + 1 }))
 }
 
-export function createRace(setups: EntrantSetup[], track: Track): RaceState {
+/** Determina el clima con el que arranca el fin de semana. */
+export function rollInitialWeather(track: Track, rng: () => number): WeatherState {
+  if (rng() < track.rainChance * 0.5) {
+    return { raining: true, wetness: 0.5 + rng() * 0.4 }
+  }
+  return { raining: false, wetness: 0 }
+}
+
+export function createRace(
+  setups: EntrantSetup[],
+  track: Track,
+  weather: WeatherState = { raining: false, wetness: 0 },
+): RaceState {
   const ordered = [...setups].sort((a, b) => a.grid - b.grid)
   const entrants: LiveEntrant[] = ordered.map((s, i) => ({
     id: s.id,
@@ -103,8 +116,32 @@ export function createRace(setups: EntrantSetup[], track: Track): RaceState {
     entrants,
     events: [],
     safetyCar: 0,
+    weather,
     finished: false,
   }
+}
+
+function chooseDryTyre(lapsLeft: number): TyreCompound {
+  if (lapsLeft > 26) return 'hard'
+  if (lapsLeft > 13) return 'medium'
+  return 'soft'
+}
+
+/** IA sencilla de estrategia: decide si un rival debe parar y con qué goma. */
+function decideRivalPit(e: LiveEntrant, wetness: number, lapsLeft: number, rng: () => number): TyreCompound | null {
+  const onWets = e.tyre === 'wet'
+  // Reacción al clima
+  if (wetness > 0.4 && !onWets) return 'wet'
+  if (wetness < 0.25 && onWets) return chooseDryTyre(lapsLeft)
+  if (onWets) return null // en mojado, se queda con lluvia
+
+  // Gestión de desgaste en seco: parar cerca del acantilado
+  const life = TYRES[e.tyre].baseLife
+  const wearFactor = 1 - (e.driver.tyreManagement - 50) * 0.006
+  const effAge = e.tyreAge * wearFactor
+  const threshold = life * (0.82 + rng() * 0.18)
+  if (effAge >= threshold && lapsLeft > 3) return chooseDryTyre(lapsLeft)
+  return null
 }
 
 /** Avanza la carrera una vuelta. Muta y devuelve un nuevo RaceState. */
@@ -123,6 +160,23 @@ export function simulateLap(state: RaceState, rng: () => number): RaceState {
     events.push({ lap, kind: 'safetycar', message: '🟡 ¡Coche de seguridad en pista!' })
   }
 
+  // Evolución del clima
+  const weather: WeatherState = { ...state.weather }
+  if (weather.raining) {
+    if (rng() < 0.07) {
+      weather.raining = false
+      events.push({ lap, kind: 'weather', message: '⛅ Deja de llover, la pista se seca.' })
+    }
+  } else if (rng() < track.rainChance * 0.12) {
+    weather.raining = true
+    events.push({ lap, kind: 'weather', message: '🌧️ ¡Empieza a llover!' })
+  }
+  const wetTarget = weather.raining ? 1 : 0
+  weather.wetness += (wetTarget - weather.wetness) * (weather.raining ? 0.25 : 0.18)
+  weather.wetness = Math.max(0, Math.min(1, weather.wetness))
+
+  const lapsLeft = state.totalLaps - lap
+
   for (const e of state.entrants) {
     if (e.retired) continue
 
@@ -132,6 +186,12 @@ export function simulateLap(state: RaceState, rng: () => number): RaceState {
       e.retired = true
       events.push({ lap, kind: 'retire', entrantId: e.id, message: `💥 ${e.name} abandona (fallo mecánico).` })
       continue
+    }
+
+    // IA de estrategia de los rivales (el jugador decide sus propias paradas)
+    if (!e.isPlayer && !e.pendingPit && lapsLeft > 1) {
+      const want = decideRivalPit(e, weather.wetness, lapsLeft, rng)
+      if (want) e.pendingPit = want
     }
 
     // ¿Entra a boxes esta vuelta?
@@ -152,6 +212,7 @@ export function simulateLap(state: RaceState, rng: () => number): RaceState {
       driverDelta(e.driver.pace) +
       TYRES[e.tyre].paceDelta +
       tyreWearPenalty(e.tyre, e.tyreAge, e.driver.tyreManagement, e.mode) +
+      weatherPenalty(e.tyre, weather.wetness) +
       MODE_PACE[e.mode]
 
     // Efecto combustible: más ligero al final = más rápido
@@ -197,6 +258,7 @@ export function simulateLap(state: RaceState, rng: () => number): RaceState {
   state.entrants = [...active, ...retired]
   state.lap = lap
   state.safetyCar = safetyCar
+  state.weather = weather
   state.events = [...state.events, ...events]
 
   if (lap >= state.totalLaps) {

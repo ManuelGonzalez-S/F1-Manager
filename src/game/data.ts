@@ -42,12 +42,12 @@ export const CATEGORIES: Category[] = [
 ]
 
 export const TRACKS: Track[] = [
-  { id: 'monza', name: 'Monza', country: '🇮🇹', laps: 18, baseLapTime: 84.5, powerBias: 0.75, pitLoss: 22, safetyCarChance: 0.05 },
-  { id: 'spa', name: 'Spa-Francorchamps', country: '🇧🇪', laps: 15, baseLapTime: 106.0, powerBias: 0.55, pitLoss: 20, safetyCarChance: 0.09 },
-  { id: 'monaco', name: 'Mónaco', country: '🇲🇨', laps: 24, baseLapTime: 74.0, powerBias: 0.25, pitLoss: 19, safetyCarChance: 0.16 },
-  { id: 'silverstone', name: 'Silverstone', country: '🇬🇧', laps: 17, baseLapTime: 90.0, powerBias: 0.5, pitLoss: 21, safetyCarChance: 0.07 },
-  { id: 'lemans', name: 'Le Mans', country: '🇫🇷', laps: 14, baseLapTime: 205.0, powerBias: 0.7, pitLoss: 26, safetyCarChance: 0.12 },
-  { id: 'suzuka', name: 'Suzuka', country: '🇯🇵', laps: 16, baseLapTime: 92.0, powerBias: 0.45, pitLoss: 22, safetyCarChance: 0.06 },
+  { id: 'monza', name: 'Monza', country: '🇮🇹', laps: 18, baseLapTime: 84.5, powerBias: 0.75, pitLoss: 22, safetyCarChance: 0.05, rainChance: 0.15 },
+  { id: 'spa', name: 'Spa-Francorchamps', country: '🇧🇪', laps: 15, baseLapTime: 106.0, powerBias: 0.55, pitLoss: 20, safetyCarChance: 0.09, rainChance: 0.4 },
+  { id: 'monaco', name: 'Mónaco', country: '🇲🇨', laps: 24, baseLapTime: 74.0, powerBias: 0.25, pitLoss: 19, safetyCarChance: 0.16, rainChance: 0.2 },
+  { id: 'silverstone', name: 'Silverstone', country: '🇬🇧', laps: 17, baseLapTime: 90.0, powerBias: 0.5, pitLoss: 21, safetyCarChance: 0.07, rainChance: 0.3 },
+  { id: 'lemans', name: 'Le Mans', country: '🇫🇷', laps: 14, baseLapTime: 205.0, powerBias: 0.7, pitLoss: 26, safetyCarChance: 0.12, rainChance: 0.25 },
+  { id: 'suzuka', name: 'Suzuka', country: '🇯🇵', laps: 16, baseLapTime: 92.0, powerBias: 0.45, pitLoss: 22, safetyCarChance: 0.06, rainChance: 0.35 },
 ]
 
 // ---- Generación de nombres para rivales y pilotos ficticios ----

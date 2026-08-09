@@ -2,8 +2,8 @@ import { useEffect, useRef, useState } from 'react'
 import type { GameState } from '../../game/state'
 import { currentCategory } from '../../game/state'
 import { TRACKS } from '../../game/data'
-import type { DriveMode, LiveEntrant, RaceState, TyreCompound } from '../../sim/types'
-import { createRace, formatGap, makeRng, qualify, simulateLap } from '../../sim/engine'
+import type { DriveMode, LiveEntrant, RaceState, TyreCompound, WeatherState } from '../../sim/types'
+import { createRace, formatGap, makeRng, qualify, rollInitialWeather, simulateLap } from '../../sim/engine'
 import { buildField } from '../../game/weekend'
 import { COMPOUND_COLOR, COMPOUND_LABEL } from '../../sim/tyres'
 
@@ -17,7 +17,7 @@ const MODES: { key: DriveMode; label: string }[] = [
   { key: 'balanced', label: 'Equilibrio' },
   { key: 'conserve', label: 'Cuidar' },
 ]
-const TYRE_OPTIONS: TyreCompound[] = ['soft', 'medium', 'hard']
+const TYRE_OPTIONS: TyreCompound[] = ['soft', 'medium', 'hard', 'wet']
 
 export function RaceScreen({ game, onFinish }: { game: GameState; onFinish: (o: RaceOutcome) => void }) {
   const track = TRACKS.find((t) => t.id === game.calendar[game.round])!
@@ -36,7 +36,8 @@ export function RaceScreen({ game, onFinish }: { game: GameState; onFinish: (o: 
     const seed = (game.season * 1000 + game.round * 37 + track.name.length * 13) >>> 0
     const field = buildField(game, seed)
     const qualified = qualify(field, track, seed + 1)
-    raceRef.current = createRace(qualified, track)
+    const weather = rollInitialWeather(track, makeRng(seed + 3))
+    raceRef.current = createRace(qualified, track, weather)
     rngRef.current = makeRng(seed + 2)
   }
 
@@ -132,8 +133,13 @@ export function RaceScreen({ game, onFinish }: { game: GameState; onFinish: (o: 
                 <TyrePill tyre={p.tyre} />
               </div>
             ))}
+            <div className="row" style={{ marginTop: 12 }}>
+              <span className="muted">Parte meteorológico</span>
+              <WeatherBadge weather={race.weather} />
+            </div>
             <p className="muted" style={{ marginTop: 12 }}>
-              Durante la carrera decides <b>modo de conducción</b> y <b>cuándo parar</b>. ¡Buena suerte!
+              Durante la carrera decides <b>modo de conducción</b> y <b>cuándo parar</b>. Ojo al cielo: si
+              llueve necesitarás <b>neumáticos de lluvia</b>. ¡Buena suerte!
             </p>
           </div>
         )}
@@ -143,6 +149,7 @@ export function RaceScreen({ game, onFinish }: { game: GameState; onFinish: (o: 
             {race.lap}/{race.totalLaps}
             <span className="muted" style={{ fontSize: 13, fontWeight: 400 }}> vueltas</span>
           </div>
+          <WeatherBadge weather={race.weather} />
         </div>
 
         {recentEvents.length > 0 && (
@@ -275,6 +282,34 @@ function PlayerControl({
             ))}
           </div>
         </>
+      )}
+    </div>
+  )
+}
+
+function WeatherBadge({ weather }: { weather: WeatherState }) {
+  const w = weather.wetness
+  let icon = '☀️'
+  let label = 'Seco'
+  if (weather.raining && w > 0.6) {
+    icon = '🌧️'
+    label = 'Lluvia fuerte'
+  } else if (weather.raining || w > 0.35) {
+    icon = '🌦️'
+    label = 'Lluvia'
+  } else if (w > 0.1) {
+    icon = '🌤️'
+    label = 'Secándose'
+  }
+  return (
+    <div className="col" style={{ alignItems: 'flex-end', gap: 3 }}>
+      <span style={{ fontWeight: 600, fontSize: 13 }}>
+        {icon} {label}
+      </span>
+      {w > 0.05 && (
+        <div className="bar" style={{ width: 88 }}>
+          <span style={{ width: `${Math.round(w * 100)}%`, background: 'var(--accent-2)' }} />
+        </div>
       )}
     </div>
   )

@@ -4,7 +4,9 @@ import {
   POINTS_TABLE,
   PROMOTION_RANK,
   currentCategory,
+  generateMarket,
   generateRivals,
+  generateSponsorOffers,
   improveRivals,
   nextCategory,
   teamStandings,
@@ -42,13 +44,18 @@ export function ResultsScreen({
     }
     const costs = 25_000 + game.drivers.reduce((s, d) => s + Math.round(d.salary / game.calendar.length), 0)
 
+    // Bono de patrocinador por carrera (si el mejor coche cumple el objetivo)
+    const bestFinish = Math.min(...outcome.results.filter((r) => r.isPlayer && !r.retired).map((r) => r.position), 99)
+    const sponsor = game.sponsor
+    const sponsorRacePayout = sponsor && bestFinish <= sponsor.perRaceObjective ? sponsor.perRacePayout : 0
+
     const nextRound = game.round + 1
     const seasonOver = nextRound >= game.calendar.length
 
     // Estado base tras la carrera
     let newState: GameState = {
       ...game,
-      money: game.money + prize - costs,
+      money: game.money + prize - costs + sponsorRacePayout,
       round: nextRound,
       points: nextPoints,
       history: [
@@ -70,6 +77,7 @@ export function ResultsScreen({
     let finalRank = 0
     let promoted = false
     let nextCatName: string | null = null
+    let sponsorSeasonBonus = 0
 
     if (seasonOver) {
       finalStandings = teamStandings({ ...game, points: nextPoints })
@@ -77,11 +85,16 @@ export function ResultsScreen({
       const next = nextCategory(game)
       const rng = makeRng((game.season * 9973 + game.calendar.length * 131 + 7) >>> 0)
 
-      let newCategoryId = game.categoryId
+      // Bono de fin de temporada del patrocinador
+      if (sponsor && finalRank > 0 && finalRank <= sponsor.seasonObjective) {
+        sponsorSeasonBonus = sponsor.seasonBonus
+      }
+
+      let newCat = cat
       let newRivals = game.rivals
       if (next && finalRank > 0 && finalRank <= PROMOTION_RANK) {
         promoted = true
-        newCategoryId = next.id
+        newCat = next
         nextCatName = next.name
         newRivals = generateRivals(rng, next.rivalLevel)
       } else {
@@ -90,15 +103,31 @@ export function ResultsScreen({
 
       newState = {
         ...newState,
+        money: newState.money + sponsorSeasonBonus,
         season: game.season + 1,
         round: 0,
         points: {},
-        categoryId: newCategoryId,
+        categoryId: newCat.id,
         rivals: newRivals,
+        market: generateMarket(rng, newCat.rivalLevel),
+        sponsor: null,
+        sponsorOffers: generateSponsorOffers(rng, newCat.prizeMoney[0]),
       }
     }
 
-    return { playerResults, prize, costs, newState, seasonOver, finalStandings, finalRank, promoted, nextCatName }
+    return {
+      playerResults,
+      prize,
+      costs,
+      sponsorRacePayout,
+      sponsorSeasonBonus,
+      newState,
+      seasonOver,
+      finalStandings,
+      finalRank,
+      promoted,
+      nextCatName,
+    }
   }, [])
 
   function handleContinue() {
@@ -108,7 +137,7 @@ export function ResultsScreen({
 
   const best = Math.min(...summary.playerResults.filter((r) => !r.retired).map((r) => r.position), 99)
   const podium = best <= 3
-  const net = summary.prize - summary.costs
+  const net = summary.prize + summary.sponsorRacePayout - summary.costs
   const isChampion = summary.seasonOver && summary.finalRank === 1
 
   return (
@@ -146,6 +175,12 @@ export function ResultsScreen({
             <span>Premios</span>
             <span className="money">+<Money v={summary.prize} /></span>
           </div>
+          {summary.sponsorRacePayout > 0 && (
+            <div className="row" style={{ padding: '6px 0' }}>
+              <span>Bono de patrocinador 🎯</span>
+              <span className="money">+<Money v={summary.sponsorRacePayout} /></span>
+            </div>
+          )}
           <div className="row" style={{ padding: '6px 0' }}>
             <span>Costes del fin de semana</span>
             <span style={{ color: 'var(--bad)' }}>-<Money v={summary.costs} /></span>
@@ -179,6 +214,11 @@ export function ResultsScreen({
                   {nextCategory(game)
                     ? `Necesitas acabar top-${PROMOTION_RANK} para ascender. Los rivales mejorarán su coche.`
                     : 'Sigue peleando por el título.'}
+                </p>
+              )}
+              {summary.sponsorSeasonBonus > 0 && (
+                <p style={{ color: 'var(--good)', textAlign: 'center', marginTop: 8 }}>
+                  🎯 Objetivo de patrocinador cumplido: +<Money v={summary.sponsorSeasonBonus} />
                 </p>
               )}
             </div>

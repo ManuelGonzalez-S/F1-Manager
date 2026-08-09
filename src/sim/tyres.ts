@@ -4,7 +4,19 @@ export const TYRES: Record<TyreCompound, TyreModel> = {
   soft: { compound: 'soft', paceDelta: -0.7, baseLife: 14, cliff: 2.2 },
   medium: { compound: 'medium', paceDelta: 0.0, baseLife: 22, cliff: 1.4 },
   hard: { compound: 'hard', paceDelta: 0.6, baseLife: 34, cliff: 0.9 },
-  wet: { compound: 'wet', paceDelta: 3.5, baseLife: 26, cliff: 1.2 },
+  wet: { compound: 'wet', paceDelta: 1.5, baseLife: 26, cliff: 1.2 },
+}
+
+/**
+ * Penalización de tiempo por la interacción neumático/agua.
+ * Los slicks se vuelven inconducibles con mucha agua (cuadrático);
+ * el neumático de lluvia sobrecalienta y va lento en seco.
+ */
+export function weatherPenalty(compound: TyreCompound, wetness: number): number {
+  if (compound === 'wet') {
+    return Math.max(0, 0.4 - wetness) * 8
+  }
+  return wetness * wetness * 14
 }
 
 export const COMPOUND_LABEL: Record<TyreCompound, string> = {

@@ -1,5 +1,14 @@
 import { describe, expect, it } from 'vitest'
-import { generateRivals, improveRivals, newGame, nextCategory, playerTeamRank, teamStandings } from './state'
+import {
+  generateRivals,
+  improveRivals,
+  newGame,
+  nextCategory,
+  playerTeamRank,
+  signDriver,
+  signSponsor,
+  teamStandings,
+} from './state'
 import { makeRng } from '../sim/engine'
 
 describe('meta-juego: campeonato y ascenso', () => {
@@ -44,5 +53,33 @@ describe('meta-juego: campeonato y ascenso', () => {
       expect(improved[i].car.power).toBeGreaterThanOrEqual(rivals[i].car.power)
       expect(improved[i].car.aero).toBeGreaterThanOrEqual(rivals[i].car.aero)
     }
+  })
+
+  it('fichar un piloto lo pone en el slot, cobra la prima y lo saca del mercado', () => {
+    const g = newGame('Test Racing')
+    const target = g.market[0]
+    const slot = 0
+    const before = g.money
+    const next = signDriver(g, target.id, slot)!
+    expect(next).not.toBeNull()
+    expect(next.drivers[slot].id).toBe(target.id)
+    expect(next.money).toBe(before - target.fee)
+    expect(next.market.find((d) => d.id === target.id)).toBeUndefined()
+  })
+
+  it('no se puede fichar sin dinero suficiente', () => {
+    const g = { ...newGame('Test Racing'), money: 0 }
+    const next = signDriver(g, g.market[0].id, 0)
+    expect(next).toBeNull()
+  })
+
+  it('firmar patrocinador cobra la prima, fija contrato y vacía las ofertas', () => {
+    const g = newGame('Test Racing')
+    const offer = g.sponsorOffers[0]
+    const before = g.money
+    const next = signSponsor(g, offer.id)!
+    expect(next.sponsor?.id).toBe(offer.id)
+    expect(next.money).toBe(before + offer.signingBonus)
+    expect(next.sponsorOffers).toHaveLength(0)
   })
 })
