@@ -88,9 +88,16 @@ export interface LiveEntrant {
   pitStops: number
   /** Órdenes pendientes del jugador para la próxima vuelta. */
   pendingPit: TyreCompound | null
+  /** Paradas programadas antes de la carrera (se ejecutan solas al llegar la vuelta). */
+  plan: PitPlan[]
   retired: boolean
   gapToLeader: number
   lastLapTime: number
+}
+
+export interface PitPlan {
+  lap: number
+  compound: TyreCompound
 }
 
 export interface RaceEvent {

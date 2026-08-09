@@ -148,6 +148,34 @@ body {
 .tyre-choices { display: flex; gap: 6px; }
 .tyre-choices button { flex: 1; padding: 8px 4px; border-radius: 9px; border: 1px solid var(--line); background: var(--bg-elev2); color: var(--text); font-size: 12px; display: flex; flex-direction: column; align-items: center; gap: 4px; }
 
+/* Torre de tiempos animada (filas deslizantes) */
+.live-tower { position: relative; }
+.live-tower .timing-row {
+  position: absolute;
+  left: 0;
+  right: 0;
+  height: 42px;
+  transition: transform 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+  will-change: transform;
+}
+.live-tower .timing-row .gap { transition: color 0.2s ease; }
+
+/* Barra de progreso de la vuelta */
+.lap-progress { height: 5px; background: var(--bg-elev2); border-radius: 3px; overflow: hidden; }
+.lap-progress > span { display: block; height: 100%; background: linear-gradient(90deg, var(--accent), var(--accent-2)); border-radius: 3px; }
+
+/* Editor de estrategia (parrilla) */
+.strat-block { background: var(--bg-elev2); border: 1px solid var(--line); border-radius: 12px; padding: 12px; margin-bottom: 12px; }
+.tyre-choices button.on { color: var(--text); font-weight: 700; }
+.stop-row { display: flex; align-items: center; gap: 6px; margin-bottom: 6px; }
+.stop-row .btn.sm { padding: 6px 10px; min-width: 34px; }
+.tyre-chip {
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 7px 12px; border-radius: 9px; border: 1px solid var(--line);
+  background: var(--bg-elev); color: var(--text); font-size: 13px; font-weight: 600; flex: 1;
+  justify-content: center;
+}
+
 /* Eventos */
 .events { display: flex; flex-direction: column; gap: 6px; }
 .event { font-size: 13px; color: var(--text-dim); padding: 6px 10px; background: var(--bg-elev); border-radius: 8px; }
