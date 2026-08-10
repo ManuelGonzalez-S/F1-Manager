@@ -8,6 +8,8 @@ export interface Category {
   rivalLevel: number
   /** Premio en € por posición final (index 0 = P1). */
   prizeMoney: number[]
+  /** Calendario por defecto de la categoría (ids de circuito). */
+  defaultCalendar: string[]
 }
 
 export const CATEGORIES: Category[] = [
@@ -17,6 +19,7 @@ export const CATEGORIES: Category[] = [
     tier: 1,
     rivalLevel: 45,
     prizeMoney: [120_000, 90_000, 70_000, 55_000, 45_000, 35_000, 28_000, 22_000, 18_000, 15_000],
+    defaultCalendar: ['catalunya', 'redbull', 'zandvoort', 'hungaroring', 'imola', 'silverstone'],
   },
   {
     id: 'gt3',
@@ -24,6 +27,7 @@ export const CATEGORIES: Category[] = [
     tier: 2,
     rivalLevel: 60,
     prizeMoney: [300_000, 220_000, 170_000, 130_000, 100_000, 80_000, 65_000, 52_000, 42_000, 34_000],
+    defaultCalendar: ['monza', 'spa', 'nurburgring', 'suzuka', 'cota', 'catalunya'],
   },
   {
     id: 'lmp',
@@ -31,6 +35,7 @@ export const CATEGORIES: Category[] = [
     tier: 3,
     rivalLevel: 72,
     prizeMoney: [600_000, 440_000, 340_000, 260_000, 200_000, 160_000, 130_000, 105_000, 85_000, 70_000],
+    defaultCalendar: ['spa', 'monza', 'silverstone', 'interlagos', 'portimao', 'cota'],
   },
   {
     id: 'wec',
@@ -38,6 +43,7 @@ export const CATEGORIES: Category[] = [
     tier: 4,
     rivalLevel: 85,
     prizeMoney: [1_200_000, 900_000, 700_000, 540_000, 420_000, 330_000, 265_000, 210_000, 170_000, 140_000],
+    defaultCalendar: ['lemans', 'spa', 'monza', 'interlagos', 'bahrain', 'cota'],
   },
 ]
 
@@ -56,6 +62,18 @@ export const TRACKS: Track[] = [
   { id: 'nurburgring', name: 'Nürburgring', country: '🇩🇪', laps: 16, baseLapTime: 90.0, powerBias: 0.5, pitLoss: 21, safetyCarChance: 0.08, rainChance: 0.35 },
   { id: 'interlagos', name: 'Interlagos', country: '🇧🇷', laps: 18, baseLapTime: 71.0, powerBias: 0.55, pitLoss: 19, safetyCarChance: 0.12, rainChance: 0.35 },
   { id: 'cota', name: 'Circuit of the Americas', country: '🇺🇸', laps: 15, baseLapTime: 97.0, powerBias: 0.5, pitLoss: 21, safetyCarChance: 0.1, rainChance: 0.2 },
+  { id: 'melbourne', name: 'Albert Park', country: '🇦🇺', laps: 16, baseLapTime: 80.0, powerBias: 0.5, pitLoss: 21, safetyCarChance: 0.1, rainChance: 0.2 },
+  { id: 'bahrain', name: 'Bahréin', country: '🇧🇭', laps: 16, baseLapTime: 91.0, powerBias: 0.55, pitLoss: 22, safetyCarChance: 0.09, rainChance: 0.05 },
+  { id: 'shanghai', name: 'Shanghái', country: '🇨🇳', laps: 16, baseLapTime: 94.0, powerBias: 0.5, pitLoss: 21, safetyCarChance: 0.08, rainChance: 0.2 },
+  { id: 'singapore', name: 'Marina Bay', country: '🇸🇬', laps: 18, baseLapTime: 98.0, powerBias: 0.3, pitLoss: 20, safetyCarChance: 0.35, rainChance: 0.25 },
+  { id: 'mexico', name: 'Hermanos Rodríguez', country: '🇲🇽', laps: 17, baseLapTime: 78.0, powerBias: 0.6, pitLoss: 21, safetyCarChance: 0.1, rainChance: 0.1 },
+  { id: 'yasmarina', name: 'Yas Marina', country: '🇦🇪', laps: 16, baseLapTime: 88.0, powerBias: 0.5, pitLoss: 21, safetyCarChance: 0.07, rainChance: 0.03 },
+  { id: 'portimao', name: 'Portimão', country: '🇵🇹', laps: 17, baseLapTime: 82.0, powerBias: 0.45, pitLoss: 21, safetyCarChance: 0.09, rainChance: 0.2 },
+  { id: 'mugello', name: 'Mugello', country: '🇮🇹', laps: 15, baseLapTime: 105.0, powerBias: 0.55, pitLoss: 22, safetyCarChance: 0.08, rainChance: 0.2 },
+  { id: 'sepang', name: 'Sepang', country: '🇲🇾', laps: 15, baseLapTime: 100.0, powerBias: 0.5, pitLoss: 22, safetyCarChance: 0.1, rainChance: 0.45 },
+  { id: 'jeddah', name: 'Jeddah', country: '🇸🇦', laps: 17, baseLapTime: 90.0, powerBias: 0.6, pitLoss: 20, safetyCarChance: 0.3, rainChance: 0.03 },
+  { id: 'baku', name: 'Bakú', country: '🇦🇿', laps: 17, baseLapTime: 105.0, powerBias: 0.55, pitLoss: 20, safetyCarChance: 0.35, rainChance: 0.1 },
+  { id: 'miami', name: 'Miami', country: '🇺🇸', laps: 16, baseLapTime: 90.0, powerBias: 0.5, pitLoss: 21, safetyCarChance: 0.12, rainChance: 0.2 },
 ]
 
 // ---- Generación de nombres para rivales y pilotos ficticios ----

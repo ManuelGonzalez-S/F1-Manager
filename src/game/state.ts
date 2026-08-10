@@ -194,7 +194,7 @@ export function newGame(teamName: string): GameState {
     return { id: uid('drv', rng), name: driverName(rng), salary: 40_000, ...s }
   })
   const car: PlayerCar = { name: 'Apex-01', ...randomCar(rng, cat.rivalLevel - 5) }
-  const calendar = generateCalendar(rng)
+  const calendar = [...cat.defaultCalendar]
   return {
     teamName,
     money: 500_000,

@@ -1,4 +1,4 @@
-import { Trophy, Users, Handshake, Wrench, Menu, ChevronRight } from 'lucide-react'
+import { Trophy, Users, Handshake, Wrench, Menu, ChevronRight, CalendarDays } from 'lucide-react'
 import type { GameState } from '../../game/state'
 import { currentCategory, driverOverall } from '../../game/state'
 import { TRACKS } from '../../game/data'
@@ -12,6 +12,7 @@ export function HomeScreen({
   onStandings,
   onMarket,
   onSponsors,
+  onCalendar,
   onRace,
   onQuit,
 }: {
@@ -20,6 +21,7 @@ export function HomeScreen({
   onStandings: () => void
   onMarket: () => void
   onSponsors: () => void
+  onCalendar: () => void
   onRace: () => void
   onQuit: () => void
 }) {
@@ -91,6 +93,7 @@ export function HomeScreen({
 
         <div className="nav-grid">
           <button className="nav-tile" onClick={onStandings}><Trophy className="ic" size={20} /> Campeonato</button>
+          <button className="nav-tile" onClick={onCalendar}><CalendarDays className="ic" size={20} /> Calendario</button>
           <button className="nav-tile" onClick={onMarket}><Users className="ic" size={20} /> Mercado</button>
           <button className="nav-tile" onClick={onSponsors}><Handshake className="ic" size={20} /> Patrocinadores</button>
           <button className="nav-tile" onClick={onGarage}><Wrench className="ic" size={20} /> Garaje / I+D</button>
