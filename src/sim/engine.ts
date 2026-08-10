@@ -45,19 +45,37 @@ function driverDelta(pace: number): number {
   return (50 - pace) * 0.025
 }
 
+/** Ritmo de desgaste efectivo (multiplicador) según modo y gestión del piloto. */
+export function tyreWearRate(mgmt: number, mode: DriveMode): number {
+  return MODE_WEAR[mode] * (1 - (mgmt - 50) * 0.006)
+}
+
+/** Fracción de vida consumida del neumático (0 = nuevo, 1 = en el acantilado). */
+export function tyreWearFraction(compound: TyreCompound, age: number, mgmt: number, mode: DriveMode): number {
+  return (age * tyreWearRate(mgmt, mode)) / TYRES[compound].baseLife
+}
+
+/** Fracción de vida que se gasta por vuelta (0-1). */
+export function tyreWearPerLap(compound: TyreCompound, mgmt: number, mode: DriveMode): number {
+  return tyreWearRate(mgmt, mode) / TYRES[compound].baseLife
+}
+
+/** Vueltas estimadas hasta el acantilado de rendimiento. */
+export function tyreLifeLaps(compound: TyreCompound, mgmt: number, mode: DriveMode): number {
+  return TYRES[compound].baseLife / tyreWearRate(mgmt, mode)
+}
+
 /** Penalización por desgaste del neumático dado su edad. */
 function tyreWearPenalty(compound: TyreCompound, age: number, mgmt: number, mode: DriveMode): number {
   const t = TYRES[compound]
-  const wearRate = MODE_WEAR[mode] * (1 - (mgmt - 50) * 0.006)
-  const effectiveAge = age * wearRate
-  const life = t.baseLife
-  if (effectiveAge <= life) {
+  const frac = tyreWearFraction(compound, age, mgmt, mode)
+  if (frac <= 1) {
     // desgaste lineal suave hasta el acantilado
-    return (effectiveAge / life) * (t.cliff * 0.4)
+    return frac * (t.cliff * 0.4)
   }
   // pasado el acantilado, se cae en picado
-  const over = effectiveAge - life
-  return t.cliff * 0.4 + over * (t.cliff * 0.5)
+  const overLaps = (frac - 1) * t.baseLife
+  return t.cliff * 0.4 + overLaps * (t.cliff * 0.5)
 }
 
 export function qualify(setups: EntrantSetup[], track: Track, seed: number): EntrantSetup[] {
