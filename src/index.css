@@ -334,6 +334,15 @@ body {
 .tyre-ref-row.head { font-size: 10.5px; text-transform: uppercase; letter-spacing: 0.5px; color: var(--text-dim2); }
 .tyre-ref-row.head > span { color: var(--text-dim2); }
 
+/* ---- Mapa de circuito ---- */
+.track-map-frame {
+  margin: 12px 0;
+  background: var(--bg-elev2);
+  border: 1px solid var(--line-soft);
+  border-radius: 12px;
+  padding: 8px;
+}
+
 /* ---- Navegación de inicio ---- */
 .nav-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 14px; }
 .nav-tile {
@@ -361,6 +370,8 @@ body {
   border-radius: 9px; font-size: 13px; margin-bottom: 8px; animation: flashIn 0.3s ease;
 }
 .event-flash .muted { flex-shrink: 0; }
+.event-flash.radio { border-left-color: var(--warn); background: rgba(232, 201, 58, 0.07); }
+.event-flash.radio .radio-msg { font-style: italic; }
 @keyframes flashIn { from { opacity: 0; transform: translateX(-8px); } }
 
 /* ---- Barra inferior de control ---- */

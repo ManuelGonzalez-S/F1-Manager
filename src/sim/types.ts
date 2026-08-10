@@ -93,6 +93,8 @@ export interface LiveEntrant {
   retired: boolean
   gapToLeader: number
   lastLapTime: number
+  /** Última vuelta en la que este piloto usó la radio (para no saturar). */
+  lastRadioLap: number
 }
 
 export interface PitPlan {
@@ -102,7 +104,7 @@ export interface PitPlan {
 
 export interface RaceEvent {
   lap: number
-  kind: 'pit' | 'overtake' | 'retire' | 'safetycar' | 'weather' | 'finish' | 'info'
+  kind: 'pit' | 'overtake' | 'retire' | 'safetycar' | 'weather' | 'finish' | 'info' | 'radio'
   entrantId?: string
   message: string
 }

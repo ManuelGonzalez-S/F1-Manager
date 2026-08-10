@@ -4,6 +4,7 @@ import { currentCategory, driverOverall } from '../../game/state'
 import { TRACKS } from '../../game/data'
 import { Money } from '../components/Money'
 import { RatingBadge } from '../components/RatingBadge'
+import { TrackMap } from '../components/TrackMap'
 
 export function HomeScreen({
   game,
@@ -50,13 +51,20 @@ export function HomeScreen({
           <h2>Próxima carrera</h2>
           {nextTrack ? (
             <>
-              <div style={{ fontSize: 22, fontWeight: 800 }}>
-                {nextTrack.country} {nextTrack.name}
+              <div className="row" style={{ alignItems: 'flex-start' }}>
+                <div className="col">
+                  <div style={{ fontSize: 22, fontWeight: 800 }}>
+                    {nextTrack.country} {nextTrack.name}
+                  </div>
+                  <span className="muted">
+                    Carrera {game.round + 1} de {game.calendar.length} · {nextTrack.laps} vueltas
+                  </span>
+                </div>
               </div>
-              <span className="muted">
-                Carrera {game.round + 1} de {game.calendar.length} · {nextTrack.laps} vueltas
-              </span>
-              <button className="btn primary with-ico" style={{ marginTop: 16 }} onClick={onRace}>
+              <div className="track-map-frame">
+                <TrackMap trackId={nextTrack.id} height={120} />
+              </div>
+              <button className="btn primary with-ico" style={{ marginTop: 4 }} onClick={onRace}>
                 Ir al fin de semana <ChevronRight size={18} />
               </button>
             </>
