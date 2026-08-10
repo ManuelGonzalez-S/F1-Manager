@@ -1,5 +1,18 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
-  <rect width="512" height="512" rx="96" fill="#0b0e13"/>
-  <path d="M256 96 L392 416 L256 344 L120 416 Z" fill="#e2334b"/>
-  <circle cx="256" cy="232" r="40" fill="#38bdf8"/>
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#141a24"/>
+      <stop offset="1" stop-color="#090c11"/>
+    </linearGradient>
+    <linearGradient id="chev" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#ff5268"/>
+      <stop offset="1" stop-color="#e8324c"/>
+    </linearGradient>
+  </defs>
+  <rect width="512" height="512" rx="112" fill="url(#bg)"/>
+  <!-- Arco de velocímetro -->
+  <path d="M120 320 A140 140 0 0 1 392 320" fill="none" stroke="#38bdf8" stroke-width="26" stroke-linecap="round" opacity="0.9"/>
+  <!-- Doble chevron 'apex' hacia arriba -->
+  <path d="M256 150 L336 250 L300 250 L256 196 L212 250 L176 250 Z" fill="url(#chev)"/>
+  <path d="M256 236 L336 336 L300 336 L256 282 L212 336 L176 336 Z" fill="url(#chev)" opacity="0.6"/>
 </svg>

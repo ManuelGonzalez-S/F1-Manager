@@ -1,3 +1,4 @@
+import { Trophy, Users, Handshake, Wrench, Menu, ChevronRight } from 'lucide-react'
 import type { GameState } from '../../game/state'
 import { currentCategory, driverOverall } from '../../game/state'
 import { TRACKS } from '../../game/data'
@@ -38,8 +39,8 @@ export function HomeScreen({
           <span className="money-chip">
             <Money v={game.money} />
           </span>
-          <button className="btn ghost sm" onClick={onQuit}>
-            ☰ Menú
+          <button className="btn ghost sm with-ico" onClick={onQuit}>
+            <Menu size={15} /> Menú
           </button>
         </div>
       </div>
@@ -55,8 +56,8 @@ export function HomeScreen({
               <span className="muted">
                 Carrera {game.round + 1} de {game.calendar.length} · {nextTrack.laps} vueltas
               </span>
-              <button className="btn primary" style={{ marginTop: 16 }} onClick={onRace}>
-                Ir al fin de semana →
+              <button className="btn primary with-ico" style={{ marginTop: 16 }} onClick={onRace}>
+                Ir al fin de semana <ChevronRight size={18} />
               </button>
             </>
           ) : (
@@ -68,7 +69,9 @@ export function HomeScreen({
           <div className="card" style={{ borderColor: 'rgba(232, 201, 58, 0.4)' }}>
             <div className="row">
               <div className="col">
-                <div style={{ fontWeight: 700 }}>🎯 Sin patrocinador</div>
+                <div className="with-ico" style={{ fontWeight: 700, justifyContent: 'flex-start' }}>
+                  <Handshake size={18} color="var(--warn)" /> Sin patrocinador
+                </div>
                 <span className="muted">Firma uno esta temporada y cobra la prima.</span>
               </div>
               <button className="btn accent sm" onClick={onSponsors}>
@@ -79,10 +82,10 @@ export function HomeScreen({
         )}
 
         <div className="nav-grid">
-          <button className="nav-tile" onClick={onStandings}><span className="ic">🏆</span> Campeonato</button>
-          <button className="nav-tile" onClick={onMarket}><span className="ic">👥</span> Mercado</button>
-          <button className="nav-tile" onClick={onSponsors}><span className="ic">🎯</span> Patrocinadores</button>
-          <button className="nav-tile" onClick={onGarage}><span className="ic">🔧</span> Garaje / I+D</button>
+          <button className="nav-tile" onClick={onStandings}><Trophy className="ic" size={20} /> Campeonato</button>
+          <button className="nav-tile" onClick={onMarket}><Users className="ic" size={20} /> Mercado</button>
+          <button className="nav-tile" onClick={onSponsors}><Handshake className="ic" size={20} /> Patrocinadores</button>
+          <button className="nav-tile" onClick={onGarage}><Wrench className="ic" size={20} /> Garaje / I+D</button>
         </div>
 
         <div className="card">

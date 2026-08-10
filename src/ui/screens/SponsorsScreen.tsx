@@ -1,3 +1,4 @@
+import { Handshake } from 'lucide-react'
 import type { GameState } from '../../game/state'
 import { signSponsor } from '../../game/state'
 import { Money } from '../components/Money'
@@ -19,7 +20,7 @@ export function SponsorsScreen({
   return (
     <>
       <div className="topbar">
-        <h1>Patrocinadores</h1>
+        <h1 className="with-ico" style={{ justifyContent: 'flex-start' }}><Handshake size={18} color="var(--accent-2)" /> Patrocinadores</h1>
         <span className="money-chip">
           <Money v={game.money} />
         </span>

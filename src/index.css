@@ -312,15 +312,21 @@ body {
   font-family: var(--font); text-align: left;
 }
 .nav-tile:active { transform: scale(0.97); }
-.nav-tile .ic { font-size: 20px; line-height: 1; }
+.nav-tile .ic { color: var(--accent-2); flex-shrink: 0; }
+
+/* Botón/etiqueta con icono + texto alineados */
+.with-ico { display: inline-flex; align-items: center; justify-content: center; gap: 7px; }
+.with-ico svg { flex-shrink: 0; }
 
 /* ---- Eventos ---- */
 .events { display: flex; flex-direction: column; gap: 6px; }
 .event { font-size: 13px; color: var(--text-dim); padding: 6px 10px; background: var(--bg-elev); border-radius: 8px; }
 .event-flash {
+  display: flex; align-items: center; gap: 8px;
   padding: 9px 13px; background: var(--bg-elev2); border-left: 3px solid var(--accent-2);
   border-radius: 9px; font-size: 13px; margin-bottom: 8px; animation: flashIn 0.3s ease;
 }
+.event-flash .muted { flex-shrink: 0; }
 @keyframes flashIn { from { opacity: 0; transform: translateX(-8px); } }
 
 /* ---- Barra inferior de control ---- */

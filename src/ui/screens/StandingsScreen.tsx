@@ -1,3 +1,4 @@
+import { Trophy } from 'lucide-react'
 import type { GameState } from '../../game/state'
 import { PROMOTION_RANK, currentCategory, nextCategory, teamStandings } from '../../game/state'
 
@@ -11,7 +12,7 @@ export function StandingsScreen({ game, onBack }: { game: GameState; onBack: () 
     <>
       <div className="topbar">
         <div className="col">
-          <h1>Campeonato</h1>
+          <h1 className="with-ico" style={{ justifyContent: 'flex-start' }}><Trophy size={18} color="var(--accent-2)" /> Campeonato</h1>
           <span className="muted">
             {cat.name} · Temporada {game.season} · {raced}/{game.calendar.length} carreras
           </span>

@@ -11,6 +11,7 @@ import {
   nextCategory,
   teamStandings,
 } from '../../game/state'
+import { Trophy, Crown, ChevronsUp, Handshake, Flag } from 'lucide-react'
 import { makeRng } from '../../sim/engine'
 import { Money } from '../components/Money'
 import type { RaceOutcome } from './RaceScreen'
@@ -151,7 +152,13 @@ export function ResultsScreen({
           {best < 99 ? (
             <>
               <div className={`result-pos ${podium ? 'podium' : ''}`}>P{best}</div>
-              <p className="muted" style={{ marginTop: 6 }}>Mejor resultado del equipo{podium ? ' 🏆 ¡Podio!' : ''}</p>
+              {podium ? (
+                <p className="with-ico" style={{ marginTop: 8, color: 'var(--gold)', fontWeight: 700 }}>
+                  <Trophy size={16} /> ¡Podio!
+                </p>
+              ) : (
+                <p className="muted" style={{ marginTop: 6 }}>Mejor resultado del equipo</p>
+              )}
             </>
           ) : (
             <div className="result-pos">DNF</div>
@@ -177,7 +184,9 @@ export function ResultsScreen({
           </div>
           {summary.sponsorRacePayout > 0 && (
             <div className="row" style={{ padding: '6px 0' }}>
-              <span>Bono de patrocinador 🎯</span>
+              <span className="with-ico" style={{ justifyContent: 'flex-start' }}>
+                <Handshake size={15} color="var(--accent-2)" /> Bono de patrocinador
+              </span>
               <span className="money">+<Money v={summary.sponsorRacePayout} /></span>
             </div>
           )}
@@ -197,17 +206,19 @@ export function ResultsScreen({
         {summary.seasonOver && (
           <>
             <div className="card" style={{ borderColor: summary.promoted ? 'var(--good)' : isChampion ? 'var(--warn)' : 'var(--accent)' }}>
-              <h2>🏁 Fin de temporada {game.season} · {cat.name}</h2>
+              <h2 className="with-ico" style={{ justifyContent: 'flex-start' }}>
+                <Flag size={13} /> Fin de temporada {game.season} · {cat.name}
+              </h2>
               <div className="result-pos" style={{ fontSize: 30 }}>
                 {summary.finalRank}º en constructores
               </div>
               {summary.promoted ? (
-                <p style={{ color: 'var(--good)', fontWeight: 700, textAlign: 'center', marginTop: 6 }}>
-                  ⬆️ ¡ASCENSO! Subes a {summary.nextCatName}
+                <p className="with-ico" style={{ color: 'var(--good)', fontWeight: 700, marginTop: 8 }}>
+                  <ChevronsUp size={18} /> ¡ASCENSO! Subes a {summary.nextCatName}
                 </p>
               ) : isChampion && !nextCategory(game) ? (
-                <p style={{ color: 'var(--warn)', fontWeight: 700, textAlign: 'center', marginTop: 6 }}>
-                  👑 ¡Campeones en la máxima categoría!
+                <p className="with-ico" style={{ color: 'var(--gold)', fontWeight: 700, marginTop: 8 }}>
+                  <Crown size={18} /> ¡Campeones en la máxima categoría!
                 </p>
               ) : (
                 <p className="muted" style={{ textAlign: 'center', marginTop: 6 }}>
@@ -217,8 +228,8 @@ export function ResultsScreen({
                 </p>
               )}
               {summary.sponsorSeasonBonus > 0 && (
-                <p style={{ color: 'var(--good)', textAlign: 'center', marginTop: 8 }}>
-                  🎯 Objetivo de patrocinador cumplido: +<Money v={summary.sponsorSeasonBonus} />
+                <p className="with-ico" style={{ color: 'var(--good)', marginTop: 8 }}>
+                  <Handshake size={15} /> Objetivo de patrocinador cumplido: +<Money v={summary.sponsorSeasonBonus} />
                 </p>
               )}
             </div>

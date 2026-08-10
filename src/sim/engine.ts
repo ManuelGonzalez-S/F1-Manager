@@ -158,7 +158,7 @@ export function simulateLap(state: RaceState, rng: () => number): RaceState {
   let safetyCar = Math.max(0, state.safetyCar - 1)
   if (!underSC && safetyCar === 0 && rng() < track.safetyCarChance && lap < state.totalLaps - 1) {
     safetyCar = 3
-    events.push({ lap, kind: 'safetycar', message: '🟡 ¡Coche de seguridad en pista!' })
+    events.push({ lap, kind: 'safetycar', message: '¡Coche de seguridad en pista!' })
   }
 
   // Evolución del clima
@@ -166,11 +166,11 @@ export function simulateLap(state: RaceState, rng: () => number): RaceState {
   if (weather.raining) {
     if (rng() < 0.07) {
       weather.raining = false
-      events.push({ lap, kind: 'weather', message: '⛅ Deja de llover, la pista se seca.' })
+      events.push({ lap, kind: 'weather', message: 'Deja de llover, la pista se seca.' })
     }
   } else if (rng() < track.rainChance * 0.12) {
     weather.raining = true
-    events.push({ lap, kind: 'weather', message: '🌧️ ¡Empieza a llover!' })
+    events.push({ lap, kind: 'weather', message: '¡Empieza a llover!' })
   }
   const wetTarget = weather.raining ? 1 : 0
   weather.wetness += (wetTarget - weather.wetness) * (weather.raining ? 0.25 : 0.18)
@@ -185,7 +185,7 @@ export function simulateLap(state: RaceState, rng: () => number): RaceState {
     const failChance = (1 - e.car.reliability / 100) * 0.004
     if (rng() < failChance) {
       e.retired = true
-      events.push({ lap, kind: 'retire', entrantId: e.id, message: `💥 ${e.name} abandona (fallo mecánico).` })
+      events.push({ lap, kind: 'retire', entrantId: e.id, message: `${e.name} abandona (fallo mecánico).` })
       continue
     }
 
@@ -212,7 +212,7 @@ export function simulateLap(state: RaceState, rng: () => number): RaceState {
       e.pitStops += 1
       e.pendingPit = null
       e.totalTime += track.pitLoss * (underSC ? 0.55 : 1) // parar con SC cuesta menos
-      events.push({ lap, kind: 'pit', entrantId: e.id, message: `🔧 ${e.name} para a boxes.` })
+      events.push({ lap, kind: 'pit', entrantId: e.id, message: `${e.name} para a boxes.` })
     }
 
     // Tiempo de vuelta
@@ -257,7 +257,7 @@ export function simulateLap(state: RaceState, rng: () => number): RaceState {
     if (prevPos > e.position && prevPos !== 0 && lap > 1) {
       // adelantamiento (solo lo anotamos para el jugador para no spamear)
       if (e.isPlayer) {
-        events.push({ lap, kind: 'overtake', entrantId: e.id, message: `⬆️ ${e.name} sube a P${e.position}.` })
+        events.push({ lap, kind: 'overtake', entrantId: e.id, message: `${e.name} sube a P${e.position}.` })
       }
     }
   })
@@ -273,7 +273,7 @@ export function simulateLap(state: RaceState, rng: () => number): RaceState {
 
   if (lap >= state.totalLaps) {
     state.finished = true
-    state.events.push({ lap, kind: 'finish', message: '🏁 ¡Bandera a cuadros!' })
+    state.events.push({ lap, kind: 'finish', message: '¡Bandera a cuadros!' })
   }
 
   return state
