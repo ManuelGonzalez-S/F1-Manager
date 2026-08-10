@@ -352,7 +352,7 @@ body {
 .input:focus { outline: none; border-color: var(--accent-2); }
 
 /* ---- Pills ---- */
-.pill { display: inline-flex; align-items: center; gap: 5px; padding: 4px 11px; border-radius: 999px; font-size: 12px; font-weight: 700; background: var(--bg-elev3); color: var(--text-dim); }
+.pill { display: inline-flex; align-items: center; gap: 5px; padding: 4px 11px; border-radius: 999px; font-size: 12px; font-weight: 700; background: var(--bg-elev3); color: var(--text-dim); white-space: nowrap; flex-shrink: 0; }
 .pill.tier { background: rgba(232, 50, 76, 0.15); color: var(--accent-hi); }
 
 .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }

@@ -54,11 +54,21 @@ export function SponsorsScreen({
               </p>
             </div>
 
-            {game.sponsorOffers.map((s) => (
+            {game.sponsorOffers.map((s) => {
+              const [spName, spTag] = s.name.split(' · ')
+              return (
               <div className="card" key={s.id}>
-                <div className="row" style={{ marginBottom: 10 }}>
-                  <div style={{ fontSize: 18, fontWeight: 700 }}>{s.name}</div>
-                  <span className="pill tier">Prima <Money v={s.signingBonus} /></span>
+                <div className="row" style={{ marginBottom: 12, gap: 12, alignItems: 'flex-start' }}>
+                  <div className="col" style={{ minWidth: 0 }}>
+                    <div style={{ fontSize: 18, fontWeight: 800, lineHeight: 1.2 }}>{spName}</div>
+                    {spTag && <span className="muted" style={{ fontSize: 12 }}>{spTag}</span>}
+                  </div>
+                  <div className="col" style={{ alignItems: 'flex-end', flexShrink: 0 }}>
+                    <span className="muted" style={{ fontSize: 10.5, textTransform: 'uppercase', letterSpacing: '0.6px' }}>Prima</span>
+                    <span style={{ fontWeight: 800, whiteSpace: 'nowrap' }}>
+                      +<Money v={s.signingBonus} />
+                    </span>
+                  </div>
                 </div>
                 <Objective
                   label="Por carrera"
@@ -74,7 +84,8 @@ export function SponsorsScreen({
                   Firmar (+<Money v={s.signingBonus} />)
                 </button>
               </div>
-            ))}
+              )
+            })}
           </>
         )}
 
