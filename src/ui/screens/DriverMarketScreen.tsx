@@ -1,6 +1,7 @@
 import type { GameState } from '../../game/state'
 import { driverOverall, signDriver } from '../../game/state'
 import { Money } from '../components/Money'
+import { RatingBadge } from '../components/RatingBadge'
 
 export function DriverMarketScreen({
   game,
@@ -24,7 +25,7 @@ export function DriverMarketScreen({
     <>
       <div className="topbar">
         <h1>Mercado de pilotos</h1>
-        <span className="money">
+        <span className="money-chip">
           <Money v={game.money} />
         </span>
       </div>
@@ -38,9 +39,10 @@ export function DriverMarketScreen({
               <div className="col" style={{ flex: 1 }}>
                 <div style={{ fontWeight: 600 }}>{d.name}</div>
                 <span className="muted">
-                  Valoración {driverOverall(d)} · Salario <Money v={d.salary} />/año
+                  Salario <Money v={d.salary} />/año
                 </span>
               </div>
+              <RatingBadge value={driverOverall(d)} />
             </div>
           ))}
         </div>
@@ -53,12 +55,12 @@ export function DriverMarketScreen({
             return (
               <div key={m.id} style={{ padding: '12px 0', borderBottom: '1px solid var(--line)' }}>
                 <div className="row">
-                  <div className="col">
-                    <span style={{ fontWeight: 600 }}>{m.name}</span>
-                    <span className="muted">Valoración {driverOverall(m)}</span>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                    <RatingBadge value={driverOverall(m)} />
+                    <span style={{ fontWeight: 700 }}>{m.name}</span>
                   </div>
                   <div className="col" style={{ alignItems: 'flex-end' }}>
-                    <span style={{ fontWeight: 600 }}>Prima <Money v={m.fee} /></span>
+                    <span style={{ fontWeight: 700 }}>Prima <Money v={m.fee} /></span>
                     <span className="muted">Salario <Money v={m.salary} />/año</span>
                   </div>
                 </div>

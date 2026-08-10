@@ -20,7 +20,7 @@ export function SponsorsScreen({
     <>
       <div className="topbar">
         <h1>Patrocinadores</h1>
-        <span className="money">
+        <span className="money-chip">
           <Money v={game.money} />
         </span>
       </div>

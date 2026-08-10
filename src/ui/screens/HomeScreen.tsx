@@ -1,7 +1,8 @@
 import type { GameState } from '../../game/state'
-import { currentCategory } from '../../game/state'
+import { currentCategory, driverOverall } from '../../game/state'
 import { TRACKS } from '../../game/data'
 import { Money } from '../components/Money'
+import { RatingBadge } from '../components/RatingBadge'
 
 export function HomeScreen({
   game,
@@ -29,16 +30,16 @@ export function HomeScreen({
       <div className="topbar">
         <div className="col">
           <h1>{game.teamName}</h1>
-          <span className="muted">
-            <span className="pill tier">{cat.name}</span> · Temporada {game.season}
+          <span className="muted" style={{ display: 'flex', alignItems: 'center', gap: 6, marginTop: 2 }}>
+            <span className="pill tier">{cat.name}</span> Temporada {game.season}
           </span>
         </div>
-        <div className="col" style={{ alignItems: 'flex-end' }}>
-          <span className="money">
+        <div className="col" style={{ alignItems: 'flex-end', gap: 6 }}>
+          <span className="money-chip">
             <Money v={game.money} />
           </span>
-          <button className="btn ghost sm" style={{ marginTop: 4 }} onClick={onQuit}>
-            Menú
+          <button className="btn ghost sm" onClick={onQuit}>
+            ☰ Menú
           </button>
         </div>
       </div>
@@ -48,17 +49,13 @@ export function HomeScreen({
           <h2>Próxima carrera</h2>
           {nextTrack ? (
             <>
-              <div className="row">
-                <div className="col">
-                  <div style={{ fontSize: 20, fontWeight: 700 }}>
-                    {nextTrack.country} {nextTrack.name}
-                  </div>
-                  <span className="muted">
-                    Carrera {game.round + 1} de {game.calendar.length} · {nextTrack.laps} vueltas
-                  </span>
-                </div>
+              <div style={{ fontSize: 22, fontWeight: 800 }}>
+                {nextTrack.country} {nextTrack.name}
               </div>
-              <button className="btn primary" style={{ marginTop: 14 }} onClick={onRace}>
+              <span className="muted">
+                Carrera {game.round + 1} de {game.calendar.length} · {nextTrack.laps} vueltas
+              </span>
+              <button className="btn primary" style={{ marginTop: 16 }} onClick={onRace}>
                 Ir al fin de semana →
               </button>
             </>
@@ -68,11 +65,11 @@ export function HomeScreen({
         </div>
 
         {!game.sponsor && (
-          <div className="card" style={{ borderColor: 'var(--warn)' }}>
+          <div className="card" style={{ borderColor: 'rgba(232, 201, 58, 0.4)' }}>
             <div className="row">
               <div className="col">
                 <div style={{ fontWeight: 700 }}>🎯 Sin patrocinador</div>
-                <span className="muted">Firma uno para esta temporada y cobra la prima.</span>
+                <span className="muted">Firma uno esta temporada y cobra la prima.</span>
               </div>
               <button className="btn accent sm" onClick={onSponsors}>
                 Elegir
@@ -81,11 +78,11 @@ export function HomeScreen({
           </div>
         )}
 
-        <div className="grid2" style={{ marginBottom: 14 }}>
-          <button className="btn sm" onClick={onStandings}>🏆 Campeonato</button>
-          <button className="btn sm" onClick={onMarket}>👥 Mercado</button>
-          <button className="btn sm" onClick={onSponsors}>🎯 Patrocinadores</button>
-          <button className="btn sm" onClick={onGarage}>🔧 Garaje / I+D</button>
+        <div className="nav-grid">
+          <button className="nav-tile" onClick={onStandings}><span className="ic">🏆</span> Campeonato</button>
+          <button className="nav-tile" onClick={onMarket}><span className="ic">👥</span> Mercado</button>
+          <button className="nav-tile" onClick={onSponsors}><span className="ic">🎯</span> Patrocinadores</button>
+          <button className="nav-tile" onClick={onGarage}><span className="ic">🔧</span> Garaje / I+D</button>
         </div>
 
         <div className="card">
@@ -99,6 +96,7 @@ export function HomeScreen({
                   Ritmo {d.pace} · Consist. {d.consistency} · Gomas {d.tyreManagement}
                 </span>
               </div>
+              <RatingBadge value={driverOverall(d)} />
             </div>
           ))}
         </div>
@@ -106,9 +104,7 @@ export function HomeScreen({
         <div className="card">
           <h2>Coche · {game.car.name}</h2>
           <StatMini label="Motor" v={game.car.power} />
-          <div style={{ height: 10 }} />
-          <StatMini label="Aero" v={game.car.aero} />
-          <div style={{ height: 10 }} />
+          <StatMini label="Aerodinámica" v={game.car.aero} />
           <StatMini label="Fiabilidad" v={game.car.reliability} />
         </div>
       </div>
@@ -118,7 +114,7 @@ export function HomeScreen({
 
 function StatMini({ label, v }: { label: string; v: number }) {
   return (
-    <div className="stat" style={{ marginBottom: 0 }}>
+    <div className="stat">
       <div className="stat-label">
         <span className="muted">{label}</span>
         <b>{v}</b>

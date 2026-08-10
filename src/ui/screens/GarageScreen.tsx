@@ -27,7 +27,7 @@ export function GarageScreen({
     <>
       <div className="topbar">
         <h1>Garaje · I+D</h1>
-        <span className="money">
+        <span className="money-chip">
           <Money v={game.money} />
         </span>
       </div>

@@ -32,3 +32,19 @@ export const COMPOUND_COLOR: Record<TyreCompound, string> = {
   hard: '#e8e8e8',
   wet: '#3a7fe8',
 }
+
+/** Letra corta para la insignia del neumático. */
+export const COMPOUND_LETTER: Record<TyreCompound, string> = {
+  soft: 'B',
+  medium: 'M',
+  hard: 'D',
+  wet: 'L',
+}
+
+/** Color del texto sobre la insignia (según el fondo del compuesto). */
+export const COMPOUND_TEXT: Record<TyreCompound, string> = {
+  soft: '#ffffff',
+  medium: '#1a1400',
+  hard: '#0b0e13',
+  wet: '#ffffff',
+}

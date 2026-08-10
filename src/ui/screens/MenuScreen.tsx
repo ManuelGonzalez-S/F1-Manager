@@ -21,8 +21,11 @@ export function MenuScreen({
 
   return (
     <div className="menu fade-in">
-      <div className="logo">
-        APEX<span>·</span>MANAGER
+      <div>
+        <div className="logo">
+          APEX<span>·</span>MANAGER
+        </div>
+        <div className="logo-sub">Racing Team Manager</div>
       </div>
       <p className="tagline">De GT4 a la gloria. Tu escudería, tus decisiones.</p>
 

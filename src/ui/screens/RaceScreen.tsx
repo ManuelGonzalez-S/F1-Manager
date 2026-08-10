@@ -5,7 +5,7 @@ import { TRACKS } from '../../game/data'
 import type { DriveMode, LiveEntrant, PitPlan, RaceState, TyreCompound, WeatherState } from '../../sim/types'
 import { createRace, formatGap, makeRng, qualify, rollInitialWeather, simulateLap } from '../../sim/engine'
 import { buildField } from '../../game/weekend'
-import { COMPOUND_COLOR, COMPOUND_LABEL } from '../../sim/tyres'
+import { COMPOUND_COLOR, COMPOUND_LABEL, COMPOUND_LETTER, COMPOUND_TEXT } from '../../sim/tyres'
 
 export interface RaceOutcome {
   trackName: string
@@ -18,7 +18,7 @@ const MODES: { key: DriveMode; label: string }[] = [
   { key: 'conserve', label: 'Cuidar' },
 ]
 const TYRE_OPTIONS: TyreCompound[] = ['soft', 'medium', 'hard', 'wet']
-const ROW_H = 46 // altura de fila de la torre de tiempos (px)
+const ROW_H = 52 // altura de fila de la torre de tiempos (px, incluye separación)
 const TICK_MS = 1200 // duración de la animación de una vuelta a 1×
 
 interface RowInfo {
@@ -276,13 +276,15 @@ export function RaceScreen({ game, onFinish }: { game: GameState; onFinish: (o: 
                   key={id}
                   style={{ transform: `translateY(${ri.rank * ROW_H}px)` }}
                 >
-                  <span className="pos">{ri.retired ? 'DNF' : ri.rank + 1}</span>
+                  <span className={`pos-badge ${ri.retired ? 'dnf' : ri.rank < 3 ? `p${ri.rank + 1}` : ''}`}>
+                    {ri.retired ? 'DNF' : ri.rank + 1}
+                  </span>
                   <span className="nm">
                     {e.name}
                     <small>{e.team}</small>
                   </span>
-                  <span className="tyre-dot" style={{ background: COMPOUND_COLOR[e.tyre] }} title={COMPOUND_LABEL[e.tyre]} />
-                  <span className="gap">{ri.retired ? '' : ri.leader ? 'Líder' : formatGap(ri.gap)}</span>
+                  <TyreBadge tyre={e.tyre} />
+                  <span className={`gap ${ri.leader ? 'leader' : ''}`}>{ri.retired ? '' : ri.leader ? 'Líder' : formatGap(ri.gap)}</span>
                 </div>
               )
             })}
@@ -352,7 +354,7 @@ function GridStrategy({
             style={e.tyre === tc ? { borderColor: COMPOUND_COLOR[tc], background: 'var(--bg-elev2)' } : undefined}
             onClick={() => onStartTyre(e.id, tc)}
           >
-            <span className="tyre-dot" style={{ background: COMPOUND_COLOR[tc] }} />
+            <TyreBadge tyre={tc} />
             {COMPOUND_LABEL[tc]}
           </button>
         ))}
@@ -374,7 +376,7 @@ function GridStrategy({
           <span style={{ minWidth: 58, textAlign: 'center', fontVariantNumeric: 'tabular-nums' }}>V{p.lap}/{totalLaps}</span>
           <button className="btn sm ghost" onClick={() => onChangeLap(e.id, idx, 1)}>+</button>
           <button className="tyre-chip" onClick={() => onCycleCompound(e.id, idx)}>
-            <span className="tyre-dot" style={{ background: COMPOUND_COLOR[p.compound] }} />
+            <TyreBadge tyre={p.compound} />
             {COMPOUND_LABEL[p.compound]}
           </button>
           <button className="btn sm ghost" onClick={() => onRemoveStop(e.id, idx)}>✕</button>
@@ -402,7 +404,7 @@ function PlayerControl({
   const displayAge = Math.max(0, e.tyreAge - (1 - t))
   const wearPct = Math.min(100, Math.round((displayAge / 22) * 100))
   return (
-    <div className="pit-panel">
+    <div className="pit-panel player-accent">
       <div className="row">
         <h3>
           P{e.retired ? '—' : pos} · {e.name}
@@ -450,7 +452,7 @@ function PlayerControl({
                 style={e.pendingPit === tc ? { borderColor: COMPOUND_COLOR[tc], background: 'var(--bg-elev)' } : undefined}
                 onClick={() => onPit(e.id, tc)}
               >
-                <span className="tyre-dot" style={{ background: COMPOUND_COLOR[tc] }} />
+                <TyreBadge tyre={tc} />
                 {COMPOUND_LABEL[tc]}
               </button>
             ))}
@@ -489,10 +491,18 @@ function WeatherBadge({ weather }: { weather: WeatherState }) {
   )
 }
 
+function TyreBadge({ tyre }: { tyre: TyreCompound }) {
+  return (
+    <span className="tyre-badge" style={{ background: COMPOUND_COLOR[tyre], color: COMPOUND_TEXT[tyre] }} title={COMPOUND_LABEL[tyre]}>
+      {COMPOUND_LETTER[tyre]}
+    </span>
+  )
+}
+
 function TyrePill({ tyre, age }: { tyre: TyreCompound; age?: number }) {
   return (
-    <span className="pill" style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>
-      <span className="tyre-dot" style={{ background: COMPOUND_COLOR[tyre] }} />
+    <span className="pill" style={{ display: 'inline-flex', alignItems: 'center', gap: 7 }}>
+      <TyreBadge tyre={tyre} />
       {COMPOUND_LABEL[tyre]}
       {age !== undefined ? ` · ${age}v` : ''}
     </span>
