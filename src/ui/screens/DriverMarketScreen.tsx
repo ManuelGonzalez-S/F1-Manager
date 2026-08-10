@@ -1,4 +1,4 @@
-import { Users } from 'lucide-react'
+import { Users, ArrowLeft } from 'lucide-react'
 import type { GameState } from '../../game/state'
 import { driverOverall, signDriver } from '../../game/state'
 import { Money } from '../components/Money'
@@ -97,8 +97,8 @@ export function DriverMarketScreen({
           })}
         </div>
 
-        <button className="btn primary" onClick={onBack}>
-          ← Volver
+        <button className="btn ghost with-ico" onClick={onBack}>
+          <ArrowLeft size={17} /> Volver
         </button>
       </div>
     </>

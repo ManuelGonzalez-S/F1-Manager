@@ -11,9 +11,10 @@ import {
   nextCategory,
   teamStandings,
 } from '../../game/state'
-import { Trophy, Crown, ChevronsUp, Handshake, Flag } from 'lucide-react'
+import { Trophy, Crown, ChevronsUp, Handshake, Flag, ChevronRight } from 'lucide-react'
 import { makeRng } from '../../sim/engine'
 import { Money } from '../components/Money'
+import { TyreBadge } from '../components/TyreBadge'
 import type { RaceOutcome } from './RaceScreen'
 
 export function ResultsScreen({
@@ -151,27 +152,40 @@ export function ResultsScreen({
         <div className={`card fade-in result-hero ${podium ? 'podium' : ''}`}>
           {best < 99 ? (
             <>
-              <div className={`result-pos ${podium ? 'podium' : ''}`}>P{best}</div>
-              {podium ? (
-                <p className="with-ico" style={{ marginTop: 8, color: 'var(--gold)', fontWeight: 700 }}>
-                  <Trophy size={16} /> ¡Podio!
-                </p>
-              ) : (
-                <p className="muted" style={{ marginTop: 6 }}>Mejor resultado del equipo</p>
+              {podium && (
+                <div className={`medallion p${best}`}>
+                  <Trophy size={30} />
+                </div>
               )}
+              <div className={`result-pos ${podium ? 'podium' : ''}`} style={{ fontSize: podium ? 34 : 52, marginTop: podium ? 10 : 0 }}>
+                P{best}
+              </div>
+              <p className="muted" style={{ marginTop: 6 }}>
+                {podium ? (best === 1 ? '¡Victoria del equipo!' : '¡Podio del equipo!') : 'Mejor resultado del equipo'}
+              </p>
             </>
           ) : (
-            <div className="result-pos">DNF</div>
+            <>
+              <div className="medallion dnf"><Flag size={26} /></div>
+              <div className="result-pos" style={{ fontSize: 34, marginTop: 10 }}>DNF</div>
+            </>
           )}
         </div>
 
         <div className="card">
           <h2>Tus coches</h2>
           {summary.playerResults.map((r) => (
-            <div className="row" key={r.entrantId} style={{ padding: '8px 0' }}>
-              <b style={{ width: 42 }}>{r.retired ? 'DNF' : `P${r.position}`}</b>
-              <span style={{ flex: 1 }}>{r.name}</span>
-              <span className="muted">{r.retired ? '—' : `${POINTS_TABLE[r.position - 1] ?? 0} pts`}</span>
+            <div className="driver" key={r.entrantId}>
+              <span className={`pos-badge ${!r.retired && r.position <= 3 ? `p${r.position}` : ''} ${r.retired ? 'dnf' : ''}`}>
+                {r.retired ? 'DNF' : r.position}
+              </span>
+              <div className="col" style={{ flex: 1, minWidth: 0 }}>
+                <span style={{ fontWeight: 600 }}>{r.name}</span>
+                <span className="with-ico muted" style={{ justifyContent: 'flex-start', gap: 6, fontSize: 12 }}>
+                  <TyreBadge tyre={r.tyre} size={16} /> {r.stops} {r.stops === 1 ? 'parada' : 'paradas'}
+                </span>
+              </div>
+              {!r.retired && <span className="pill" style={{ background: 'rgba(56,189,248,0.14)', color: 'var(--accent-2)' }}>+{POINTS_TABLE[r.position - 1] ?? 0} pts</span>}
             </div>
           ))}
         </div>
@@ -256,8 +270,8 @@ export function ResultsScreen({
           </>
         )}
 
-        <button className="btn primary" onClick={handleContinue}>
-          Continuar →
+        <button className="btn primary with-ico" onClick={handleContinue}>
+          Continuar <ChevronRight size={18} />
         </button>
       </div>
     </>

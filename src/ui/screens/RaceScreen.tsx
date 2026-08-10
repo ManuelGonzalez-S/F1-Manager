@@ -33,11 +33,21 @@ import {
   tyreWearPerLap,
 } from '../../sim/engine'
 import { buildField } from '../../game/weekend'
-import { COMPOUND_COLOR, COMPOUND_LABEL, COMPOUND_LETTER, COMPOUND_TEXT } from '../../sim/tyres'
+import { COMPOUND_COLOR, COMPOUND_LABEL } from '../../sim/tyres'
+import { TyreBadge } from '../components/TyreBadge'
 
 export interface RaceOutcome {
   trackName: string
-  results: { entrantId: string; name: string; team: string; isPlayer: boolean; position: number; retired: boolean }[]
+  results: {
+    entrantId: string
+    name: string
+    team: string
+    isPlayer: boolean
+    position: number
+    retired: boolean
+    stops: number
+    tyre: TyreCompound
+  }[]
 }
 
 const MODES: { key: DriveMode; label: string }[] = [
@@ -202,6 +212,8 @@ export function RaceScreen({ game, onFinish }: { game: GameState; onFinish: (o: 
           isPlayer: e.isPlayer,
           position: e.position,
           retired: e.retired,
+          stops: e.pitStops,
+          tyre: e.tyre,
         })),
     })
   }
@@ -577,14 +589,6 @@ function TyreReference({ mgmt }: { mgmt: number }) {
         </div>
       ))}
     </div>
-  )
-}
-
-function TyreBadge({ tyre }: { tyre: TyreCompound }) {
-  return (
-    <span className="tyre-badge" style={{ background: COMPOUND_COLOR[tyre], color: COMPOUND_TEXT[tyre] }} title={COMPOUND_LABEL[tyre]}>
-      {COMPOUND_LETTER[tyre]}
-    </span>
   )
 }
 

@@ -1,4 +1,4 @@
-import { Handshake } from 'lucide-react'
+import { Handshake, ArrowLeft } from 'lucide-react'
 import type { GameState } from '../../game/state'
 import { signSponsor } from '../../game/state'
 import { Money } from '../components/Money'
@@ -90,8 +90,8 @@ export function SponsorsScreen({
           </>
         )}
 
-        <button className="btn" onClick={onBack}>
-          ← Volver
+        <button className="btn ghost with-ico" onClick={onBack}>
+          <ArrowLeft size={17} /> Volver
         </button>
       </div>
     </>

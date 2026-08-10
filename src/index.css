@@ -300,6 +300,28 @@ body {
   justify-content: center; font-family: var(--font);
 }
 
+/* ---- Clasificación de constructores ---- */
+.standings { display: flex; flex-direction: column; gap: 6px; }
+.standing-row {
+  display: flex; align-items: center; gap: 11px;
+  padding: 9px 11px; border-radius: 11px;
+  background: var(--bg-elev); border: 1px solid var(--line-soft);
+}
+.standing-row.player { border-color: var(--accent-2); background: rgba(56, 189, 248, 0.08); }
+.standing-row.promo { box-shadow: inset 3px 0 0 var(--good); }
+.pts-bar { height: 6px; background: var(--bg-elev3); border-radius: 4px; overflow: hidden; }
+.pts-bar > span {
+  display: block; height: 100%; border-radius: 4px;
+  background: linear-gradient(90deg, var(--accent-2), var(--good));
+  transition: width 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* ---- Barra con ganancia proyectada (garaje) ---- */
+.gain-bar { position: relative; height: 10px; }
+.gain-bar > span { position: absolute; left: 0; top: 0; height: 100%; border-radius: 5px; }
+.gain-bar .ghost { background: rgba(56, 189, 248, 0.3); }
+.gain-bar .fill { background: linear-gradient(90deg, var(--accent-2), var(--good)); }
+
 /* ---- Referencia de neumáticos ---- */
 .tyre-ref { background: var(--bg-elev); border: 1px solid var(--line-soft); border-radius: 10px; padding: 4px 10px; }
 .tyre-ref-row {
@@ -353,15 +375,35 @@ body {
 }
 
 /* ---- Splash / menú ---- */
-.menu { min-height: 100%; display: flex; flex-direction: column; justify-content: center; align-items: center; padding: 28px; text-align: center; gap: 14px; }
-.logo { font-size: 46px; font-weight: 900; letter-spacing: -1.5px; line-height: 1; }
+.menu {
+  position: relative; overflow: hidden;
+  min-height: 100%; display: flex; flex-direction: column; justify-content: center; align-items: center;
+  padding: 28px 22px; text-align: center; gap: 14px;
+}
+.menu::before {
+  content: ''; position: absolute; inset: 0; pointer-events: none;
+  background:
+    repeating-linear-gradient(118deg, transparent 0 46px, rgba(56, 189, 248, 0.035) 46px 48px),
+    radial-gradient(600px 300px at 50% 8%, rgba(232, 50, 76, 0.1), transparent 70%);
+}
+.menu > * { position: relative; z-index: 1; }
+.logo { font-size: clamp(28px, 9vw, 44px); font-weight: 900; letter-spacing: -1px; line-height: 1; white-space: nowrap; }
 .logo span { color: var(--accent); }
 .logo-sub {
   display: inline-block; margin-top: 10px; padding: 5px 14px; border-radius: 999px;
   background: rgba(56, 189, 248, 0.12); border: 1px solid rgba(56, 189, 248, 0.25);
   color: var(--accent-2); font-size: 11px; font-weight: 800; letter-spacing: 2px; text-transform: uppercase;
 }
-.tagline { color: var(--text-dim); margin-bottom: 18px; max-width: 300px; }
+.tagline { color: var(--text-dim); margin-bottom: 6px; max-width: 300px; }
+
+/* Escalera de categorías (portada) */
+.ladder { display: flex; align-items: center; justify-content: center; gap: 5px; flex-wrap: wrap; margin-bottom: 14px; }
+.ladder-step {
+  padding: 6px 11px; border-radius: 9px; background: var(--bg-elev2); border: 1px solid var(--line);
+  font-size: 11.5px; font-weight: 800; color: var(--text-dim);
+}
+.ladder-step.first { color: var(--accent-2); border-color: rgba(56, 189, 248, 0.4); }
+.ladder-step.goal { color: var(--gold); border-color: rgba(242, 193, 78, 0.45); background: rgba(242, 193, 78, 0.08); }
 .input {
   width: 100%; padding: 15px; border-radius: 12px; background: var(--bg-elev);
   border: 1px solid var(--line); color: var(--text); font-size: 16px; text-align: center;
@@ -386,3 +428,13 @@ body {
   background: radial-gradient(400px 200px at 50% 0%, rgba(56, 189, 248, 0.1), transparent 70%), linear-gradient(180deg, var(--bg-elev), #11161f);
 }
 .result-hero.podium { background: radial-gradient(400px 220px at 50% 0%, rgba(242, 193, 78, 0.16), transparent 70%), linear-gradient(180deg, var(--bg-elev), #11161f); }
+.medallion {
+  width: 76px; height: 76px; margin: 0 auto; border-radius: 50%;
+  display: grid; place-items: center;
+  background: var(--bg-elev3); color: var(--text-dim); border: 2px solid var(--line);
+  font-size: 26px; font-weight: 900;
+}
+.medallion.p1 { background: radial-gradient(circle at 35% 30%, #fce38a, var(--gold)); color: #3d2c00; border-color: transparent; box-shadow: 0 6px 22px rgba(242, 193, 78, 0.4); }
+.medallion.p2 { background: radial-gradient(circle at 35% 30%, #eef2f8, var(--silver)); color: #2a3340; border-color: transparent; box-shadow: 0 6px 22px rgba(199, 208, 220, 0.3); }
+.medallion.p3 { background: radial-gradient(circle at 35% 30%, #e0a878, var(--bronze)); color: #3a2410; border-color: transparent; box-shadow: 0 6px 22px rgba(205, 139, 88, 0.3); }
+.medallion.dnf { color: var(--bad); }
