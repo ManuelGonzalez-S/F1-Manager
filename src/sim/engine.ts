@@ -78,19 +78,51 @@ function tyreWearPenalty(compound: TyreCompound, age: number, mgmt: number, mode
   return t.cliff * 0.4 + overLaps * (t.cliff * 0.5)
 }
 
-export function qualify(setups: EntrantSetup[], track: Track, seed: number): EntrantSetup[] {
+export interface QualiResult {
+  setups: EntrantSetup[]
+  /** Notas por coche del jugador: si clavó la vuelta o cometió un error. */
+  playerNotes: Record<string, { mode: DriveMode; mistake: boolean; pos: number }>
+}
+
+export function qualify(
+  setups: EntrantSetup[],
+  track: Track,
+  seed: number,
+  playerModes?: Record<string, DriveMode>,
+): QualiResult {
   const rng = makeRng(seed)
+  const mistakes: Record<string, boolean> = {}
   const scored = setups.map((s) => {
-    const base =
+    let time =
       track.baseLapTime +
       carDelta(s.car.power, s.car.aero, track.powerBias) +
       driverDelta(s.driver.pace) +
       TYRES.soft.paceDelta + // todos clasifican con blando
       (rng() - 0.5) * (1.2 - s.driver.consistency * 0.008)
-    return { s, time: base }
+    if (s.isPlayer && playerModes) {
+      const mode = playerModes[s.id] ?? 'balanced'
+      if (mode === 'push') {
+        time -= 0.45 // vuelta de ataque: más rápida...
+        const mistakeChance = Math.max(0.06, 0.3 - s.driver.consistency * 0.0025)
+        if (rng() < mistakeChance) {
+          time += 1.4 // ...pero con riesgo de error
+          mistakes[s.id] = true
+        }
+      } else if (mode === 'conserve') {
+        time += 0.4 // vuelta segura: más lenta pero sin riesgo
+      }
+    }
+    return { s, time }
   })
   scored.sort((a, b) => a.time - b.time)
-  return scored.map(({ s }, i) => ({ ...s, grid: i + 1 }))
+  const setupsOut = scored.map(({ s }, i) => ({ ...s, grid: i + 1 }))
+  const playerNotes: QualiResult['playerNotes'] = {}
+  for (const s of setupsOut) {
+    if (s.isPlayer) {
+      playerNotes[s.id] = { mode: playerModes?.[s.id] ?? 'balanced', mistake: !!mistakes[s.id], pos: s.grid }
+    }
+  }
+  return { setups: setupsOut, playerNotes }
 }
 
 /** Determina el clima con el que arranca el fin de semana. */
