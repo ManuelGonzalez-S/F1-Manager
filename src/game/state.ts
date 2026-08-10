@@ -317,6 +317,30 @@ export function currentCategory(state: GameState) {
 }
 
 export function nextCategory(state: GameState) {
-  const idx = CATEGORIES.findIndex((c) => c.id === state.categoryId)
-  return idx >= 0 && idx < CATEGORIES.length - 1 ? CATEGORIES[idx + 1] : null
+  const cat = currentCategory(state)
+  // Ascenso por nivel; en el tope (tier 4: WEC/F1) no hay ascenso, se alterna.
+  return CATEGORIES.find((c) => c.tier === cat.tier + 1) ?? null
+}
+
+export function twinCategory(state: GameState) {
+  const cat = currentCategory(state)
+  return cat.twin ? CATEGORIES.find((c) => c.id === cat.twin) ?? null : null
+}
+
+/** Alterna entre las categorías cumbre gemelas (WEC ↔ F1), empezando temporada nueva. */
+export function switchPinnacle(state: GameState, rng: () => number): GameState | null {
+  const twin = twinCategory(state)
+  if (!twin) return null
+  return {
+    ...state,
+    categoryId: twin.id,
+    season: state.season + 1,
+    round: 0,
+    points: {},
+    calendar: [...twin.defaultCalendar],
+    rivals: generateRivals(rng, twin.rivalLevel),
+    market: generateMarket(rng, twin.rivalLevel),
+    sponsor: null,
+    sponsorOffers: generateSponsorOffers(rng, twin.prizeMoney[0]),
+  }
 }

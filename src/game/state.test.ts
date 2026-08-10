@@ -7,7 +7,9 @@ import {
   playerTeamRank,
   signDriver,
   signSponsor,
+  switchPinnacle,
   teamStandings,
+  twinCategory,
 } from './state'
 import { makeRng } from '../sim/engine'
 
@@ -38,11 +40,29 @@ describe('meta-juego: campeonato y ascenso', () => {
     expect(playerTeamRank(g)).toBe(1)
   })
 
-  it('nextCategory devuelve la siguiente y null en la máxima', () => {
+  it('nextCategory asciende por nivel y topa en la cumbre (WEC/F1)', () => {
     const g = newGame('Test Racing')
     expect(nextCategory(g)?.id).toBe('gt3')
-    const top = { ...g, categoryId: 'wec' }
-    expect(nextCategory(top)).toBeNull()
+    expect(nextCategory({ ...g, categoryId: 'lmp' })?.id).toBe('wec')
+    expect(nextCategory({ ...g, categoryId: 'wec' })).toBeNull()
+    expect(nextCategory({ ...g, categoryId: 'f1' })).toBeNull()
+  })
+
+  it('twinCategory enlaza WEC y F1, y es null en categorías bajas', () => {
+    const g = newGame('Test Racing')
+    expect(twinCategory({ ...g, categoryId: 'wec' })?.id).toBe('f1')
+    expect(twinCategory({ ...g, categoryId: 'f1' })?.id).toBe('wec')
+    expect(twinCategory(g)).toBeNull()
+  })
+
+  it('switchPinnacle alterna a la gemela con temporada nueva', () => {
+    const g = { ...newGame('Test Racing'), categoryId: 'wec', season: 3, round: 4, points: { x: 50 } }
+    const next = switchPinnacle(g, makeRng(1))!
+    expect(next.categoryId).toBe('f1')
+    expect(next.season).toBe(4)
+    expect(next.round).toBe(0)
+    expect(next.points).toEqual({})
+    expect(next.rivals.length).toBeGreaterThan(0)
   })
 
   it('improveRivals sube las stats del coche sin bajarlas', () => {
