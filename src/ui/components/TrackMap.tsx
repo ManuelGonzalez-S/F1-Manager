@@ -15,11 +15,11 @@ export function TrackMap({
   return (
     <svg viewBox="0 0 300 200" preserveAspectRatio="xMidYMid meet" style={{ height, width: '100%', display: 'block' }}>
       {/* Asfalto (trazo ancho oscuro) */}
-      <path d={d} fill="none" stroke="var(--bg-elev3)" strokeWidth={13} strokeLinejoin="round" strokeLinecap="round" />
+      <path d={d} fill="none" stroke="var(--bg-elev3)" strokeWidth={9} strokeLinejoin="round" strokeLinecap="round" />
       {/* Línea de color encima */}
-      <path d={d} fill="none" stroke={color} strokeWidth={4} strokeLinejoin="round" strokeLinecap="round" />
+      <path d={d} fill="none" stroke={color} strokeWidth={3.5} strokeLinejoin="round" strokeLinecap="round" />
       {/* Marcador de salida/meta */}
-      {start && <circle cx={start.x} cy={start.y} r={7} fill="#fff" stroke="var(--bg)" strokeWidth={2} />}
+      {start && <circle cx={start.x} cy={start.y} r={6} fill="#fff" stroke="var(--bg)" strokeWidth={2} />}
     </svg>
   )
 }
