@@ -66,8 +66,8 @@ const QUALI_MODES: { key: DriveMode; label: string; desc: string }[] = [
   { key: 'conserve', label: 'Segura', desc: 'Más lenta, cero riesgo.' },
 ]
 const TYRE_OPTIONS: TyreCompound[] = ['soft', 'medium', 'hard', 'wet']
-const ROW_H = 52 // altura de fila de la torre de tiempos (px, incluye separación)
-const TICK_MS = 1200 // duración de la animación de una vuelta a 1×
+const ROW_H = 46 // altura de fila de la torre de tiempos (px, incluye separación)
+const TICK_MS = 2200 // duración de la animación de una vuelta a 1× (más pausado)
 
 interface RowInfo {
   rank: number
@@ -93,6 +93,7 @@ export function RaceScreen({ game, onFinish }: { game: GameState; onFinish: (o: 
   const [playing, setPlaying] = useState(false)
   const [qualiModes, setQualiModes] = useState<Record<string, DriveMode>>({})
   const [qualiNotes, setQualiNotes] = useState<QualiResult['playerNotes'] | null>(null)
+  const [raceTab, setRaceTab] = useState<'cars' | 'timing'>('cars')
   const [, forceTick] = useState(0)
   const rerender = () => forceTick((n) => n + 1)
 
@@ -117,18 +118,26 @@ export function RaceScreen({ game, onFinish }: { game: GameState; onFinish: (o: 
       const dt = ts - last
       last = ts
       progressRef.current += dt / (TICK_MS / speed)
+      let radioPause = false
       while (progressRef.current >= 1 && !r.finished) {
         prevTotalsRef.current = Object.fromEntries(r.entrants.map((e) => [e.id, e.totalTime]))
+        const before = r.events.length
         simulateLap(r, rngRef.current)
         progressRef.current -= 1
+        if (r.events.slice(before).some((e) => e.kind === 'radio')) {
+          radioPause = true
+          break
+        }
       }
       if (r.finished) {
         progressRef.current = 1
         setPlaying(false)
         setPhase('done')
+      } else if (radioPause) {
+        setPlaying(false) // la radio del piloto pausa la carrera
       }
       rerender()
-      raf = requestAnimationFrame(step)
+      if (!radioPause) raf = requestAnimationFrame(step)
     }
     raf = requestAnimationFrame(step)
     return () => cancelAnimationFrame(raf)
@@ -344,8 +353,8 @@ export function RaceScreen({ game, onFinish }: { game: GameState; onFinish: (o: 
         {phase === 'racing' && race.safetyCar > 0 && <span className="sc-flag">SAFETY CAR</span>}
       </div>
 
-      <div className="screen">
-        {phase === 'grid' && (
+      {phase === 'grid' ? (
+        <div className="screen">
           <div className="card fade-in">
             <h2>Estrategia de salida</h2>
             <div className="track-map-frame" style={{ marginTop: 0 }}>
@@ -390,76 +399,74 @@ export function RaceScreen({ game, onFinish }: { game: GameState; onFinish: (o: 
               />
             ))}
           </div>
-        )}
-
-        <div className="race-hud">
-          <div className="col" style={{ gap: 6, flex: 1 }}>
-            <div className="lap-counter">
-              {currentLap}/{race.totalLaps}
-              <span className="muted" style={{ fontSize: 13, fontWeight: 400 }}> vueltas</span>
-            </div>
-            <div className="lap-progress">
-              <span style={{ width: `${phase === 'grid' ? 0 : t * 100}%` }} />
-            </div>
-          </div>
-          <WeatherBadge weather={race.weather} />
         </div>
-
-        {recentEvents.length > 0 && (
-          <div style={{ marginBottom: 12 }}>
-            {recentEvents.map((ev, i) => (
-              <div className={`event-flash ${ev.kind === 'radio' ? 'radio' : ''}`} key={`${ev.lap}-${i}`}>
-                <EventIcon ev={ev} />
-                <span className="muted">V{ev.lap}</span>
-                <span className={ev.kind === 'radio' ? 'radio-msg' : ''}>{ev.message}</span>
-              </div>
-            ))}
-          </div>
-        )}
-
-        {/* Mapa en vivo con la posición de cada coche */}
-        {phase !== 'grid' && (
-          <div className="card" style={{ padding: 10 }}>
-            <div className="track-map-frame" style={{ margin: 0 }}>
-              <RaceTrackMap trackId={track.id} dots={dots} height={150} />
-            </div>
-          </div>
-        )}
-
-        {/* Paneles de control del jugador */}
-        {phase !== 'grid' &&
-          players.map((p) => (
-            <PlayerControl key={p.id} e={p} pos={(info.get(p.id)?.rank ?? 0) + 1} t={t} onMode={setMode} onPit={requestPit} disabled={phase === 'done'} />
-          ))}
-
-        {/* Torre de tiempos (animada) */}
-        <div className="card">
-          <h2>Clasificación en vivo</h2>
-          <div className="live-tower" style={{ height: race.entrants.length * ROW_H }}>
-            {orderRef.current.map((id) => {
-              const e = race.entrants.find((x) => x.id === id)!
-              const ri = info.get(id)!
-              return (
-                <div
-                  className={`timing-row ${e.isPlayer ? 'player' : ''} ${ri.retired ? 'retired' : ''}`}
-                  key={id}
-                  style={{ transform: `translateY(${ri.rank * ROW_H}px)` }}
-                >
-                  <span className={`pos-badge ${ri.retired ? 'dnf' : ri.rank < 3 ? `p${ri.rank + 1}` : ''}`}>
-                    {ri.retired ? 'DNF' : ri.rank + 1}
-                  </span>
-                  <span className="nm">
-                    {e.name}
-                    <small>{e.team}</small>
-                  </span>
-                  <TyreBadge tyre={e.tyre} />
-                  <span className={`gap ${ri.leader ? 'leader' : ''}`}>{ri.retired ? '' : ri.leader ? 'Líder' : formatGap(ri.gap)}</span>
+      ) : (
+        <div className="race-live">
+          <div className="race-top">
+            <div className="race-hud" style={{ marginBottom: 0 }}>
+              <div className="col" style={{ gap: 6, flex: 1 }}>
+                <div className="lap-counter" style={{ fontSize: 22 }}>
+                  {currentLap}/{race.totalLaps}
+                  <span className="muted" style={{ fontSize: 12, fontWeight: 400 }}> vueltas</span>
                 </div>
-              )
-            })}
+                <div className="lap-progress">
+                  <span style={{ width: `${t * 100}%` }} />
+                </div>
+              </div>
+              <WeatherBadge weather={race.weather} />
+            </div>
+
+            <div className="track-map-frame" style={{ margin: 0 }}>
+              <RaceTrackMap trackId={track.id} dots={dots} height={132} />
+            </div>
+
+            {recentEvents[0] && (
+              <div className={`event-flash ${recentEvents[0].kind === 'radio' ? 'radio' : ''}`} style={{ marginBottom: 0 }}>
+                <EventIcon ev={recentEvents[0]} />
+                <span className="muted">V{recentEvents[0].lap}</span>
+                <span className={recentEvents[0].kind === 'radio' ? 'radio-msg' : ''}>{recentEvents[0].message}</span>
+              </div>
+            )}
+
+            <div className="mode-seg">
+              <button className={raceTab === 'cars' ? 'on' : ''} onClick={() => setRaceTab('cars')}>Tus coches</button>
+              <button className={raceTab === 'timing' ? 'on' : ''} onClick={() => setRaceTab('timing')}>Clasificación</button>
+            </div>
+          </div>
+
+          <div className="race-panel">
+            {raceTab === 'cars' &&
+              players.map((p) => (
+                <PlayerControl key={p.id} e={p} pos={(info.get(p.id)?.rank ?? 0) + 1} t={t} onMode={setMode} onPit={requestPit} disabled={phase === 'done'} />
+              ))}
+            {raceTab === 'timing' && (
+              <div className="live-tower" style={{ height: race.entrants.length * ROW_H }}>
+                {orderRef.current.map((id) => {
+                  const e = race.entrants.find((x) => x.id === id)!
+                  const ri = info.get(id)!
+                  return (
+                    <div
+                      className={`timing-row ${e.isPlayer ? 'player' : ''} ${ri.retired ? 'retired' : ''}`}
+                      key={id}
+                      style={{ transform: `translateY(${ri.rank * ROW_H}px)` }}
+                    >
+                      <span className={`pos-badge ${ri.retired ? 'dnf' : ri.rank < 3 ? `p${ri.rank + 1}` : ''}`}>
+                        {ri.retired ? 'DNF' : ri.rank + 1}
+                      </span>
+                      <span className="nm">
+                        {e.name}
+                        <small>{e.team}</small>
+                      </span>
+                      <TyreBadge tyre={e.tyre} />
+                      <span className={`gap ${ri.leader ? 'leader' : ''}`}>{ri.retired ? '' : ri.leader ? 'Líder' : formatGap(ri.gap)}</span>
+                    </div>
+                  )
+                })}
+              </div>
+            )}
           </div>
         </div>
-      </div>
+      )}
 
       {/* Controles de simulación */}
       <div className="sim-controls">
