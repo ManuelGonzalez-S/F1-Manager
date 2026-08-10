@@ -48,6 +48,14 @@ export const TRACKS: Track[] = [
   { id: 'silverstone', name: 'Silverstone', country: '🇬🇧', laps: 17, baseLapTime: 90.0, powerBias: 0.5, pitLoss: 21, safetyCarChance: 0.07, rainChance: 0.3 },
   { id: 'lemans', name: 'Le Mans', country: '🇫🇷', laps: 14, baseLapTime: 205.0, powerBias: 0.7, pitLoss: 26, safetyCarChance: 0.12, rainChance: 0.25 },
   { id: 'suzuka', name: 'Suzuka', country: '🇯🇵', laps: 16, baseLapTime: 92.0, powerBias: 0.45, pitLoss: 22, safetyCarChance: 0.06, rainChance: 0.35 },
+  { id: 'catalunya', name: 'Barcelona-Catalunya', country: '🇪🇸', laps: 17, baseLapTime: 82.0, powerBias: 0.45, pitLoss: 21, safetyCarChance: 0.06, rainChance: 0.15 },
+  { id: 'redbull', name: 'Red Bull Ring', country: '🇦🇹', laps: 21, baseLapTime: 67.0, powerBias: 0.6, pitLoss: 20, safetyCarChance: 0.1, rainChance: 0.25 },
+  { id: 'hungaroring', name: 'Hungaroring', country: '🇭🇺', laps: 19, baseLapTime: 78.0, powerBias: 0.3, pitLoss: 20, safetyCarChance: 0.09, rainChance: 0.2 },
+  { id: 'zandvoort', name: 'Zandvoort', country: '🇳🇱', laps: 20, baseLapTime: 72.0, powerBias: 0.4, pitLoss: 20, safetyCarChance: 0.09, rainChance: 0.3 },
+  { id: 'imola', name: 'Imola', country: '🇮🇹', laps: 18, baseLapTime: 78.0, powerBias: 0.5, pitLoss: 22, safetyCarChance: 0.11, rainChance: 0.2 },
+  { id: 'nurburgring', name: 'Nürburgring', country: '🇩🇪', laps: 16, baseLapTime: 90.0, powerBias: 0.5, pitLoss: 21, safetyCarChance: 0.08, rainChance: 0.35 },
+  { id: 'interlagos', name: 'Interlagos', country: '🇧🇷', laps: 18, baseLapTime: 71.0, powerBias: 0.55, pitLoss: 19, safetyCarChance: 0.12, rainChance: 0.35 },
+  { id: 'cota', name: 'Circuit of the Americas', country: '🇺🇸', laps: 15, baseLapTime: 97.0, powerBias: 0.5, pitLoss: 21, safetyCarChance: 0.1, rainChance: 0.2 },
 ]
 
 // ---- Generación de nombres para rivales y pilotos ficticios ----

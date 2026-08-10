@@ -174,6 +174,18 @@ export function signDriver(state: GameState, marketId: string, slot: 0 | 1): Gam
   }
 }
 
+export const CALENDAR_SIZE = 6
+
+/** Calendario aleatorio de la temporada a partir del pool de circuitos. */
+export function generateCalendar(rng: () => number, size = CALENDAR_SIZE): string[] {
+  const ids = TRACKS.map((t) => t.id)
+  for (let i = ids.length - 1; i > 0; i--) {
+    const j = Math.floor(rng() * (i + 1))
+    ;[ids[i], ids[j]] = [ids[j], ids[i]]
+  }
+  return ids.slice(0, Math.min(size, ids.length))
+}
+
 export function newGame(teamName: string): GameState {
   const rng = makeRng(Date.now() % 2147483647 || 12345)
   const cat = CATEGORIES[0]
@@ -182,7 +194,7 @@ export function newGame(teamName: string): GameState {
     return { id: uid('drv', rng), name: driverName(rng), salary: 40_000, ...s }
   })
   const car: PlayerCar = { name: 'Apex-01', ...randomCar(rng, cat.rivalLevel - 5) }
-  const calendar = TRACKS.slice(0, 5).map((t) => t.id)
+  const calendar = generateCalendar(rng)
   return {
     teamName,
     money: 500_000,
