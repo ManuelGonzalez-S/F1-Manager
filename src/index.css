@@ -334,6 +334,32 @@ body {
 .tyre-ref-row.head { font-size: 10.5px; text-transform: uppercase; letter-spacing: 0.5px; color: var(--text-dim2); }
 .tyre-ref-row.head > span { color: var(--text-dim2); }
 
+/* ---- Calendario editable ---- */
+.cal-row {
+  display: flex; align-items: center; gap: 11px;
+  padding: 8px 0; border-bottom: 1px solid var(--line-soft);
+}
+.cal-row:last-child { border-bottom: none; }
+.cal-map {
+  width: 66px; flex-shrink: 0; background: var(--bg-elev2);
+  border: 1px solid var(--line-soft); border-radius: 8px; padding: 3px;
+}
+.icon-btn {
+  flex-shrink: 0; width: 30px; height: 30px; border-radius: 8px;
+  border: 1px solid var(--line); background: var(--bg-elev2); color: var(--text-dim);
+  display: grid; place-items: center; cursor: pointer;
+}
+.icon-btn:active { transform: scale(0.92); }
+.track-chips { display: flex; flex-wrap: wrap; gap: 7px; }
+.track-chip {
+  display: inline-flex; align-items: center; gap: 5px;
+  padding: 8px 11px; border-radius: 999px; font-size: 13px; font-weight: 600;
+  background: rgba(56, 189, 248, 0.1); border: 1px solid rgba(56, 189, 248, 0.28);
+  color: var(--text); cursor: pointer; font-family: var(--font);
+}
+.track-chip.alt { background: var(--bg-elev2); border-color: var(--line); }
+.track-chip:active { transform: scale(0.96); }
+
 /* ---- Mapa de circuito ---- */
 .track-map-frame {
   margin: 12px 0;
