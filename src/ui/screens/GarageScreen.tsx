@@ -1,3 +1,4 @@
+import { Wrench } from 'lucide-react'
 import type { GameState } from '../../game/state'
 import { upgradeOptions } from '../../game/weekend'
 import { Money } from '../components/Money'
@@ -26,7 +27,7 @@ export function GarageScreen({
   return (
     <>
       <div className="topbar">
-        <h1>Garaje · I+D</h1>
+        <h1 className="with-ico" style={{ justifyContent: 'flex-start' }}><Wrench size={18} color="var(--accent-2)" /> Garaje · I+D</h1>
         <span className="money-chip">
           <Money v={game.money} />
         </span>

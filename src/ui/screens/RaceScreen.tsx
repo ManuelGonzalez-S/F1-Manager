@@ -1,4 +1,22 @@
 import { useEffect, useRef, useState } from 'react'
+import {
+  Sun,
+  CloudSun,
+  CloudRain,
+  CloudRainWind,
+  Wrench,
+  ChevronsUp,
+  TriangleAlert,
+  Ban,
+  Flag,
+  Info,
+  Pause,
+  Play,
+  SkipForward,
+  Gauge,
+  ChevronRight,
+} from 'lucide-react'
+import type { LucideIcon } from 'lucide-react'
 import type { GameState } from '../../game/state'
 import { currentCategory } from '../../game/state'
 import { TRACKS } from '../../game/data'
@@ -251,6 +269,7 @@ export function RaceScreen({ game, onFinish }: { game: GameState; onFinish: (o: 
           <div style={{ marginBottom: 12 }}>
             {recentEvents.map((ev, i) => (
               <div className="event-flash" key={`${ev.lap}-${i}`}>
+                <EventIcon ev={ev} />
                 <span className="muted">V{ev.lap}</span> {ev.message}
               </div>
             ))}
@@ -295,26 +314,26 @@ export function RaceScreen({ game, onFinish }: { game: GameState; onFinish: (o: 
       {/* Controles de simulación */}
       <div className="sim-controls">
         {phase === 'grid' && (
-          <button className="btn primary" onClick={startRace}>
-            🚦 Empezar carrera
+          <button className="btn primary with-ico" onClick={startRace}>
+            <Flag size={18} /> Empezar carrera
           </button>
         )}
         {phase === 'racing' && (
           <>
-            <button className="btn sm" style={{ flex: 1 }} onClick={() => setPlaying((p) => !p)}>
-              {playing ? '⏸ Pausa' : '▶ Seguir'}
+            <button className="btn sm with-ico" style={{ flex: 1 }} onClick={() => setPlaying((p) => !p)}>
+              {playing ? <><Pause size={16} /> Pausa</> : <><Play size={16} /> Seguir</>}
             </button>
-            <button className="btn sm" style={{ flex: 1 }} onClick={() => setSpeed((s) => (s === 1 ? 2 : s === 2 ? 4 : 1))}>
-              {speed}×
+            <button className="btn sm with-ico" style={{ flex: 1 }} onClick={() => setSpeed((s) => (s === 1 ? 2 : s === 2 ? 4 : 1))}>
+              <Gauge size={16} /> {speed}×
             </button>
-            <button className="btn sm ghost" style={{ flex: 1 }} onClick={skipToEnd}>
-              ⏭ Al final
+            <button className="btn sm ghost with-ico" style={{ flex: 1 }} onClick={skipToEnd}>
+              <SkipForward size={16} /> Al final
             </button>
           </>
         )}
         {phase === 'done' && (
-          <button className="btn primary" onClick={finish}>
-            Ver resultados →
+          <button className="btn primary with-ico" onClick={finish}>
+            Ver resultados <ChevronRight size={18} />
           </button>
         )}
       </div>
@@ -413,7 +432,9 @@ function PlayerControl({
       </div>
 
       {e.retired ? (
-        <p className="muted" style={{ marginTop: 8 }}>Fuera de carrera 💥</p>
+        <p className="muted with-ico" style={{ marginTop: 8, justifyContent: 'flex-start' }}>
+          <Ban size={15} color="var(--bad)" /> Fuera de carrera
+        </p>
       ) : (
         <>
           <div className="stat" style={{ margin: '10px 0' }}>
@@ -440,8 +461,14 @@ function PlayerControl({
             ))}
           </div>
 
-          <div className="muted" style={{ fontSize: 12, margin: '6px 0 4px' }}>
-            {e.pendingPit ? `🔧 Boxes solicitado: ${COMPOUND_LABEL[e.pendingPit]}` : 'Parar a boxes ya con:'}
+          <div className="muted with-ico" style={{ fontSize: 12, margin: '6px 0 4px', justifyContent: 'flex-start' }}>
+            {e.pendingPit ? (
+              <>
+                <Wrench size={13} color="var(--accent-2)" /> Boxes solicitado: {COMPOUND_LABEL[e.pendingPit]}
+              </>
+            ) : (
+              'Parar a boxes ya con:'
+            )}
           </div>
           <div className="tyre-choices">
             {TYRE_OPTIONS.map((tc) => (
@@ -463,24 +490,47 @@ function PlayerControl({
   )
 }
 
+function EventIcon({ ev }: { ev: { kind: string; message: string } }) {
+  const map: Record<string, { Icon: LucideIcon; color: string }> = {
+    pit: { Icon: Wrench, color: 'var(--accent-2)' },
+    overtake: { Icon: ChevronsUp, color: 'var(--good)' },
+    retire: { Icon: Ban, color: 'var(--bad)' },
+    safetycar: { Icon: TriangleAlert, color: 'var(--warn)' },
+    finish: { Icon: Flag, color: 'var(--text)' },
+    info: { Icon: Info, color: 'var(--text-dim)' },
+  }
+  let entry = map[ev.kind] ?? map.info
+  if (ev.kind === 'weather') {
+    entry = ev.message.includes('Empieza')
+      ? { Icon: CloudRain, color: 'var(--accent-2)' }
+      : { Icon: Sun, color: 'var(--warn)' }
+  }
+  const { Icon, color } = entry
+  return <Icon size={16} color={color} style={{ flexShrink: 0 }} />
+}
+
 function WeatherBadge({ weather }: { weather: WeatherState }) {
   const w = weather.wetness
-  let icon = '☀️'
+  let Icon: LucideIcon = Sun
+  let color = 'var(--warn)'
   let label = 'Seco'
   if (weather.raining && w > 0.6) {
-    icon = '🌧️'
+    Icon = CloudRainWind
+    color = 'var(--accent-2)'
     label = 'Lluvia fuerte'
   } else if (weather.raining || w > 0.35) {
-    icon = '🌦️'
+    Icon = CloudRain
+    color = 'var(--accent-2)'
     label = 'Lluvia'
   } else if (w > 0.1) {
-    icon = '🌤️'
+    Icon = CloudSun
+    color = 'var(--text-dim)'
     label = 'Secándose'
   }
   return (
-    <div className="col" style={{ alignItems: 'flex-end', gap: 3 }}>
-      <span style={{ fontWeight: 600, fontSize: 13 }}>
-        {icon} {label}
+    <div className="col" style={{ alignItems: 'flex-end', gap: 4 }}>
+      <span className="with-ico" style={{ fontWeight: 700, fontSize: 13 }}>
+        <Icon size={17} color={color} /> {label}
       </span>
       {w > 0.05 && (
         <div className="bar" style={{ width: 88 }}>

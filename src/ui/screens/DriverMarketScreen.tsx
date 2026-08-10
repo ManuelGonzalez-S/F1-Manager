@@ -1,3 +1,4 @@
+import { Users } from 'lucide-react'
 import type { GameState } from '../../game/state'
 import { driverOverall, signDriver } from '../../game/state'
 import { Money } from '../components/Money'
@@ -24,7 +25,7 @@ export function DriverMarketScreen({
   return (
     <>
       <div className="topbar">
-        <h1>Mercado de pilotos</h1>
+        <h1 className="with-ico" style={{ justifyContent: 'flex-start' }}><Users size={18} color="var(--accent-2)" /> Mercado</h1>
         <span className="money-chip">
           <Money v={game.money} />
         </span>
