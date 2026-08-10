@@ -344,8 +344,8 @@ body {
 }
 .cal-row:last-child { border-bottom: none; }
 .cal-map {
-  width: 66px; flex-shrink: 0; background: var(--bg-elev2);
-  border: 1px solid var(--line-soft); border-radius: 8px; padding: 3px;
+  width: 84px; flex-shrink: 0; background: var(--bg-elev2);
+  border: 1px solid var(--line-soft); border-radius: 9px; padding: 3px;
 }
 .icon-btn {
   flex-shrink: 0; width: 30px; height: 30px; border-radius: 8px;
@@ -353,15 +353,26 @@ body {
   display: grid; place-items: center; cursor: pointer;
 }
 .icon-btn:active { transform: scale(0.92); }
-.track-chips { display: flex; flex-wrap: wrap; gap: 7px; }
-.track-chip {
-  display: inline-flex; align-items: center; gap: 5px;
-  padding: 8px 11px; border-radius: 999px; font-size: 13px; font-weight: 600;
-  background: rgba(56, 189, 248, 0.1); border: 1px solid rgba(56, 189, 248, 0.28);
-  color: var(--text); cursor: pointer; font-family: var(--font);
+.pick-label { font-size: 11px; text-transform: uppercase; letter-spacing: 1px; font-weight: 700; margin: 2px 0 8px; }
+
+/* Selector de circuitos con minimapa */
+.track-pick-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.track-pick {
+  background: var(--bg-elev2); border: 1px solid var(--line); border-radius: 12px;
+  padding: 8px; cursor: pointer; font-family: var(--font); text-align: center;
+  transition: transform 0.08s ease, border-color 0.15s ease;
 }
-.track-chip.alt { background: var(--bg-elev2); border-color: var(--line); }
-.track-chip:active { transform: scale(0.96); }
+.track-pick.accent { border-color: rgba(56, 189, 248, 0.3); }
+.track-pick:active { transform: scale(0.96); }
+.track-pick .tp-map { background: var(--bg-elev); border-radius: 8px; padding: 2px; }
+.track-pick .tp-name {
+  font-size: 12px; font-weight: 700; color: var(--text); margin-top: 7px; line-height: 1.2;
+  display: flex; align-items: center; justify-content: center; gap: 5px;
+}
+.track-pick .tp-add {
+  display: inline-flex; align-items: center; justify-content: center; gap: 4px;
+  font-size: 11px; font-weight: 700; color: var(--accent-2); margin-top: 5px;
+}
 
 /* ---- Mapa de circuito ---- */
 .track-map-frame {
