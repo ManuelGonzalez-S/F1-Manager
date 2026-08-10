@@ -10,6 +10,8 @@ export interface Category {
   prizeMoney: number[]
   /** Calendario por defecto de la categoría (ids de circuito). */
   defaultCalendar: string[]
+  /** Categoría cumbre gemela con la que se puede alternar (WEC ↔ F1). */
+  twin?: string
 }
 
 export const CATEGORIES: Category[] = [
@@ -44,6 +46,16 @@ export const CATEGORIES: Category[] = [
     rivalLevel: 85,
     prizeMoney: [1_200_000, 900_000, 700_000, 540_000, 420_000, 330_000, 265_000, 210_000, 170_000, 140_000],
     defaultCalendar: ['lemans', 'spa', 'monza', 'interlagos', 'bahrain', 'cota'],
+    twin: 'f1',
+  },
+  {
+    id: 'f1',
+    name: 'F1 Championship',
+    tier: 4,
+    rivalLevel: 92,
+    prizeMoney: [1_500_000, 1_120_000, 880_000, 680_000, 520_000, 410_000, 330_000, 260_000, 210_000, 170_000],
+    defaultCalendar: ['melbourne', 'monaco', 'silverstone', 'spa', 'monza', 'suzuka', 'cota', 'yasmarina'],
+    twin: 'wec',
   },
 ]
 
@@ -74,6 +86,16 @@ export const TRACKS: Track[] = [
   { id: 'jeddah', name: 'Jeddah', country: '🇸🇦', laps: 17, baseLapTime: 90.0, powerBias: 0.6, pitLoss: 20, safetyCarChance: 0.3, rainChance: 0.03 },
   { id: 'baku', name: 'Bakú', country: '🇦🇿', laps: 17, baseLapTime: 105.0, powerBias: 0.55, pitLoss: 20, safetyCarChance: 0.35, rainChance: 0.1 },
   { id: 'miami', name: 'Miami', country: '🇺🇸', laps: 16, baseLapTime: 90.0, powerBias: 0.5, pitLoss: 21, safetyCarChance: 0.12, rainChance: 0.2 },
+  { id: 'paulricard', name: 'Paul Ricard', country: '🇫🇷', laps: 16, baseLapTime: 92.0, powerBias: 0.55, pitLoss: 21, safetyCarChance: 0.07, rainChance: 0.1 },
+  { id: 'hockenheim', name: 'Hockenheim', country: '🇩🇪', laps: 17, baseLapTime: 78.0, powerBias: 0.5, pitLoss: 21, safetyCarChance: 0.09, rainChance: 0.25 },
+  { id: 'sochi', name: 'Sochi', country: '🇷🇺', laps: 16, baseLapTime: 95.0, powerBias: 0.45, pitLoss: 21, safetyCarChance: 0.08, rainChance: 0.05 },
+  { id: 'istanbul', name: 'Istanbul Park', country: '🇹🇷', laps: 16, baseLapTime: 87.0, powerBias: 0.5, pitLoss: 21, safetyCarChance: 0.09, rainChance: 0.2 },
+  { id: 'estoril', name: 'Estoril', country: '🇵🇹', laps: 18, baseLapTime: 80.0, powerBias: 0.45, pitLoss: 21, safetyCarChance: 0.09, rainChance: 0.15 },
+  { id: 'losail', name: 'Losail', country: '🇶🇦', laps: 16, baseLapTime: 96.0, powerBias: 0.5, pitLoss: 21, safetyCarChance: 0.08, rainChance: 0.03 },
+  { id: 'lasvegas', name: 'Las Vegas', country: '🇺🇸', laps: 17, baseLapTime: 96.0, powerBias: 0.6, pitLoss: 20, safetyCarChance: 0.3, rainChance: 0.05 },
+  { id: 'indianapolis', name: 'Indianápolis', country: '🇺🇸', laps: 17, baseLapTime: 74.0, powerBias: 0.55, pitLoss: 20, safetyCarChance: 0.1, rainChance: 0.15 },
+  { id: 'kyalami', name: 'Kyalami', country: '🇿🇦', laps: 17, baseLapTime: 80.0, powerBias: 0.5, pitLoss: 21, safetyCarChance: 0.08, rainChance: 0.15 },
+  { id: 'watkinsglen', name: 'Watkins Glen', country: '🇺🇸', laps: 17, baseLapTime: 78.0, powerBias: 0.5, pitLoss: 21, safetyCarChance: 0.09, rainChance: 0.2 },
 ]
 
 // ---- Generación de nombres para rivales y pilotos ficticios ----

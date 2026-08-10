@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import type { GameState } from '../game/state'
-import { hasSave, loadGame, saveGame } from '../game/state'
+import { hasSave, loadGame, saveGame, switchPinnacle, twinCategory } from '../game/state'
+import { makeRng } from '../sim/engine'
 import { MenuScreen } from './screens/MenuScreen'
 import { HomeScreen } from './screens/HomeScreen'
 import { GarageScreen } from './screens/GarageScreen'
@@ -37,6 +38,16 @@ export function App() {
     setScreen('home')
   }
 
+  function handleSwitchChampionship() {
+    if (!game) return
+    const twin = twinCategory(game)
+    if (!twin) return
+    const ok = confirm(`¿Cambiar a ${twin.name}? Empezarás una temporada nueva en ese campeonato (se mantienen equipo, coche y dinero).`)
+    if (!ok) return
+    const next = switchPinnacle(game, makeRng((game.season * 7919 + 4231) >>> 0))
+    if (next) setGame(next)
+  }
+
   return (
     <div className="app">
       {screen === 'menu' && (
@@ -50,6 +61,7 @@ export function App() {
           onMarket={() => setScreen('market')}
           onSponsors={() => setScreen('sponsors')}
           onCalendar={() => setScreen('calendar')}
+          onSwitchChampionship={handleSwitchChampionship}
           onRace={() => setScreen('race')}
           onQuit={() => setScreen('menu')}
         />

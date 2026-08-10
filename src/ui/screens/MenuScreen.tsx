@@ -34,7 +34,7 @@ export function MenuScreen({
       <div className="ladder">
         {CATEGORIES.map((c, i) => (
           <span key={c.id} style={{ display: 'inline-flex', alignItems: 'center', gap: 5 }}>
-            <span className={`ladder-step ${i === 0 ? 'first' : ''} ${i === CATEGORIES.length - 1 ? 'goal' : ''}`}>
+            <span className={`ladder-step ${i === 0 ? 'first' : ''} ${c.tier === 4 ? 'goal' : ''}`}>
               {c.name.split(' ')[0]}
             </span>
             {i < CATEGORIES.length - 1 && <ChevronRight size={13} color="var(--text-dim2)" />}

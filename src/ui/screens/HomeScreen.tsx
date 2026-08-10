@@ -1,6 +1,6 @@
-import { Trophy, Users, Handshake, Wrench, Menu, ChevronRight, CalendarDays } from 'lucide-react'
+import { Trophy, Users, Handshake, Wrench, Menu, ChevronRight, CalendarDays, Repeat } from 'lucide-react'
 import type { GameState } from '../../game/state'
-import { currentCategory, driverOverall } from '../../game/state'
+import { currentCategory, driverOverall, twinCategory } from '../../game/state'
 import { TRACKS } from '../../game/data'
 import { Money } from '../components/Money'
 import { RatingBadge } from '../components/RatingBadge'
@@ -13,6 +13,7 @@ export function HomeScreen({
   onMarket,
   onSponsors,
   onCalendar,
+  onSwitchChampionship,
   onRace,
   onQuit,
 }: {
@@ -22,10 +23,12 @@ export function HomeScreen({
   onMarket: () => void
   onSponsors: () => void
   onCalendar: () => void
+  onSwitchChampionship: () => void
   onRace: () => void
   onQuit: () => void
 }) {
   const cat = currentCategory(game)
+  const twin = twinCategory(game)
   const seasonOver = game.round >= game.calendar.length
   const nextTrack = seasonOver ? null : TRACKS.find((t) => t.id === game.calendar[game.round])
 
@@ -86,6 +89,20 @@ export function HomeScreen({
               </div>
               <button className="btn accent sm" onClick={onSponsors}>
                 Elegir
+              </button>
+            </div>
+          </div>
+        )}
+
+        {twin && (
+          <div className="card" style={{ borderColor: 'rgba(232, 50, 76, 0.35)' }}>
+            <div className="row">
+              <div className="col">
+                <div style={{ fontWeight: 700 }}>Categoría cumbre</div>
+                <span className="muted">Puedes alternar tu campeonato entre {cat.name} y {twin.name}.</span>
+              </div>
+              <button className="btn primary sm with-ico" style={{ flexShrink: 0 }} onClick={onSwitchChampionship}>
+                <Repeat size={15} /> {twin.name.split(' ')[0]}
               </button>
             </div>
           </div>
