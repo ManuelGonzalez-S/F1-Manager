@@ -300,6 +300,18 @@ body {
   justify-content: center; font-family: var(--font);
 }
 
+/* ---- Referencia de neumáticos ---- */
+.tyre-ref { background: var(--bg-elev); border: 1px solid var(--line-soft); border-radius: 10px; padding: 4px 10px; }
+.tyre-ref-row {
+  display: grid; grid-template-columns: 1fr 56px 84px; align-items: center; gap: 8px;
+  padding: 6px 0; font-size: 13px; font-variant-numeric: tabular-nums;
+  border-bottom: 1px solid var(--line-soft);
+}
+.tyre-ref-row:last-child { border-bottom: none; }
+.tyre-ref-row > span:not(:first-child) { text-align: right; color: var(--text-dim); }
+.tyre-ref-row.head { font-size: 10.5px; text-transform: uppercase; letter-spacing: 0.5px; color: var(--text-dim2); }
+.tyre-ref-row.head > span { color: var(--text-dim2); }
+
 /* ---- Navegación de inicio ---- */
 .nav-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 14px; }
 .nav-tile {

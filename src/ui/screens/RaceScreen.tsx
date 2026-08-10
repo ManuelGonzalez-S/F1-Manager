@@ -21,7 +21,17 @@ import type { GameState } from '../../game/state'
 import { currentCategory } from '../../game/state'
 import { TRACKS } from '../../game/data'
 import type { DriveMode, LiveEntrant, PitPlan, RaceState, TyreCompound, WeatherState } from '../../sim/types'
-import { createRace, formatGap, makeRng, qualify, rollInitialWeather, simulateLap } from '../../sim/engine'
+import {
+  createRace,
+  formatGap,
+  makeRng,
+  qualify,
+  rollInitialWeather,
+  simulateLap,
+  tyreLifeLaps,
+  tyreWearFraction,
+  tyreWearPerLap,
+} from '../../sim/engine'
 import { buildField } from '../../game/weekend'
 import { COMPOUND_COLOR, COMPOUND_LABEL, COMPOUND_LETTER, COMPOUND_TEXT } from '../../sim/tyres'
 
@@ -379,7 +389,9 @@ function GridStrategy({
         ))}
       </div>
 
-      <div className="row" style={{ marginBottom: 6 }}>
+      <TyreReference mgmt={e.driver.tyreManagement} />
+
+      <div className="row" style={{ marginBottom: 6, marginTop: 12 }}>
         <span className="muted" style={{ fontSize: 12 }}>Plan de paradas ({e.plan.length})</span>
         <button className="btn sm ghost" disabled={e.plan.length >= 3} onClick={() => onAddStop(e.id)}>
           + Añadir parada
@@ -421,7 +433,9 @@ function PlayerControl({
   disabled: boolean
 }) {
   const displayAge = Math.max(0, e.tyreAge - (1 - t))
-  const wearPct = Math.min(100, Math.round((displayAge / 22) * 100))
+  const wearPct = Math.min(100, Math.round(tyreWearFraction(e.tyre, displayAge, e.driver.tyreManagement, e.mode) * 100))
+  const perLapPct = tyreWearPerLap(e.tyre, e.driver.tyreManagement, e.mode) * 100
+  const lifeLeft = Math.max(0, tyreLifeLaps(e.tyre, e.driver.tyreManagement, e.mode) - displayAge)
   return (
     <div className="pit-panel player-accent">
       <div className="row">
@@ -439,11 +453,14 @@ function PlayerControl({
         <>
           <div className="stat" style={{ margin: '10px 0' }}>
             <div className="stat-label">
-              <span className="muted">Desgaste neumático</span>
+              <span className="muted">Desgaste · {perLapPct.toFixed(1)}%/vuelta</span>
               <b>{wearPct}%</b>
             </div>
             <div className="bar">
               <span style={{ width: `${wearPct}%`, background: wearPct > 75 ? 'var(--bad)' : wearPct > 45 ? 'var(--warn)' : 'var(--good)' }} />
+            </div>
+            <div className="muted" style={{ fontSize: 11, marginTop: 4, textAlign: 'right' }}>
+              {wearPct >= 100 ? 'Al límite — pierde ritmo' : `Rinde ~${Math.round(lifeLeft)} vueltas más`}
             </div>
           </div>
 
@@ -537,6 +554,28 @@ function WeatherBadge({ weather }: { weather: WeatherState }) {
           <span style={{ width: `${Math.round(w * 100)}%`, background: 'var(--accent-2)' }} />
         </div>
       )}
+    </div>
+  )
+}
+
+function TyreReference({ mgmt }: { mgmt: number }) {
+  const compounds: TyreCompound[] = ['soft', 'medium', 'hard', 'wet']
+  return (
+    <div className="tyre-ref">
+      <div className="tyre-ref-row head">
+        <span>Compuesto</span>
+        <span>Dura</span>
+        <span>Gasto/vuelta</span>
+      </div>
+      {compounds.map((c) => (
+        <div className="tyre-ref-row" key={c}>
+          <span className="with-ico" style={{ justifyContent: 'flex-start', gap: 7 }}>
+            <TyreBadge tyre={c} /> {COMPOUND_LABEL[c]}
+          </span>
+          <span>~{Math.round(tyreLifeLaps(c, mgmt, 'balanced'))} v</span>
+          <span>{(tyreWearPerLap(c, mgmt, 'balanced') * 100).toFixed(1)}%</span>
+        </div>
+      ))}
     </div>
   )
 }

@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { createRace, makeRng, qualify, simulateLap } from './engine'
+import { createRace, makeRng, qualify, simulateLap, tyreLifeLaps, tyreWearPerLap } from './engine'
 import { weatherPenalty } from './tyres'
 import type { EntrantSetup, TyreCompound } from './types'
 import { TRACKS } from '../game/data'
@@ -94,6 +94,23 @@ describe('motor de carrera', () => {
     expect(car.pitStops).toBe(1)
     expect(car.tyre).toBe('hard')
     expect(car.plan).toHaveLength(0)
+  })
+
+  it('cada compuesto se gasta a un ritmo distinto (blando > medio > duro)', () => {
+    const mgmt = 50
+    const wSoft = tyreWearPerLap('soft', mgmt, 'balanced')
+    const wMed = tyreWearPerLap('medium', mgmt, 'balanced')
+    const wHard = tyreWearPerLap('hard', mgmt, 'balanced')
+    expect(wSoft).toBeGreaterThan(wMed)
+    expect(wMed).toBeGreaterThan(wHard)
+    // Y la duración va al revés
+    expect(tyreLifeLaps('hard', mgmt, 'balanced')).toBeGreaterThan(tyreLifeLaps('medium', mgmt, 'balanced'))
+    expect(tyreLifeLaps('medium', mgmt, 'balanced')).toBeGreaterThan(tyreLifeLaps('soft', mgmt, 'balanced'))
+  })
+
+  it('atacar gasta más que cuidar y mejor gestión alarga la vida', () => {
+    expect(tyreWearPerLap('medium', 50, 'push')).toBeGreaterThan(tyreWearPerLap('medium', 50, 'conserve'))
+    expect(tyreLifeLaps('medium', 80, 'balanced')).toBeGreaterThan(tyreLifeLaps('medium', 40, 'balanced'))
   })
 
   it('con lluvia el neumático de agua bate al slick; en seco es al revés', () => {
