@@ -147,11 +147,11 @@ export function ResultsScreen({
       </div>
 
       <div className="screen">
-        <div className="card fade-in" style={{ textAlign: 'center' }}>
+        <div className={`card fade-in result-hero ${podium ? 'podium' : ''}`}>
           {best < 99 ? (
             <>
               <div className={`result-pos ${podium ? 'podium' : ''}`}>P{best}</div>
-              <p className="muted">Mejor resultado del equipo{podium ? ' 🏆 ¡Podio!' : ''}</p>
+              <p className="muted" style={{ marginTop: 6 }}>Mejor resultado del equipo{podium ? ' 🏆 ¡Podio!' : ''}</p>
             </>
           ) : (
             <div className="result-pos">DNF</div>
