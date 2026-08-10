@@ -38,6 +38,8 @@ import { buildField } from '../../game/weekend'
 import { COMPOUND_COLOR, COMPOUND_LABEL } from '../../sim/tyres'
 import { TyreBadge } from '../components/TyreBadge'
 import { TrackMap } from '../components/TrackMap'
+import { RaceTrackMap } from '../components/RaceTrackMap'
+import type { CarDot } from '../components/RaceTrackMap'
 
 export interface RaceOutcome {
   trackName: string
@@ -314,6 +316,22 @@ export function RaceScreen({ game, onFinish }: { game: GameState; onFinish: (o: 
   const recentEvents = race.events.slice(-4).reverse()
   const currentLap = race.finished ? race.totalLaps : Math.min(race.totalLaps, race.lap + 1)
 
+  // Posición de cada coche alrededor del trazado (para los puntos en el mapa)
+  const lapRef = track.baseLapTime
+  const dots: CarDot[] = race.entrants
+    .filter((e) => !e.retired)
+    .map((e) => {
+      const ri = info.get(e.id)!
+      const frac = t - ri.gap / lapRef
+      return {
+        id: e.id,
+        frac,
+        color: e.isPlayer ? 'var(--accent-2)' : ri.leader ? 'var(--gold)' : 'var(--text-dim)',
+        size: e.isPlayer ? 5 : 3.5,
+        z: e.isPlayer ? 2 : ri.leader ? 1 : 0,
+      }
+    })
+
   return (
     <>
       <div className="topbar">
@@ -396,6 +414,15 @@ export function RaceScreen({ game, onFinish }: { game: GameState; onFinish: (o: 
                 <span className={ev.kind === 'radio' ? 'radio-msg' : ''}>{ev.message}</span>
               </div>
             ))}
+          </div>
+        )}
+
+        {/* Mapa en vivo con la posición de cada coche */}
+        {phase !== 'grid' && (
+          <div className="card" style={{ padding: 10 }}>
+            <div className="track-map-frame" style={{ margin: 0 }}>
+              <RaceTrackMap trackId={track.id} dots={dots} height={150} />
+            </div>
           </div>
         )}
 
