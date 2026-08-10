@@ -4,14 +4,17 @@ import {
   POINTS_TABLE,
   PROMOTION_RANK,
   currentCategory,
+  facilityDev,
   generateMarket,
   generateRivals,
   generateSponsorOffers,
   improveRivals,
   nextCategory,
+  seasonTargetFor,
   teamStandings,
 } from '../../game/state'
-import { Trophy, Crown, ChevronsUp, Handshake, Flag, ChevronRight } from 'lucide-react'
+import type { PlayerCar } from '../../game/state'
+import { Trophy, Crown, ChevronsUp, Handshake, Flag, ChevronRight, Target, Ban } from 'lucide-react'
 import { makeRng } from '../../sim/engine'
 import { Money } from '../components/Money'
 import { TyreBadge } from '../components/TyreBadge'
@@ -22,11 +25,13 @@ export function ResultsScreen({
   outcome,
   setGame,
   onContinue,
+  onGameOver,
 }: {
   game: GameState
   outcome: RaceOutcome
   setGame: (g: GameState) => void
   onContinue: () => void
+  onGameOver: () => void
 }) {
   const cat = currentCategory(game)
 
@@ -51,6 +56,19 @@ export function ResultsScreen({
     const sponsor = game.sponsor
     const sponsorRacePayout = sponsor && bestFinish <= sponsor.perRaceObjective ? sponsor.perRacePayout : 0
 
+    // Estadísticas de trayectoria (por carrera)
+    const racePoints = playerResults
+      .filter((r) => !r.retired)
+      .reduce((s, r) => s + (POINTS_TABLE[r.position - 1] ?? 0), 0)
+    const statsAfterRace = {
+      ...game.stats,
+      races: game.stats.races + 1,
+      wins: game.stats.wins + (bestFinish === 1 ? 1 : 0),
+      podiums: game.stats.podiums + (bestFinish <= 3 ? 1 : 0),
+      points: game.stats.points + racePoints,
+      bestFinish: Math.min(game.stats.bestFinish, bestFinish),
+    }
+
     const nextRound = game.round + 1
     const seasonOver = nextRound >= game.calendar.length
 
@@ -60,6 +78,7 @@ export function ResultsScreen({
       money: game.money + prize - costs + sponsorRacePayout,
       round: nextRound,
       points: nextPoints,
+      stats: statsAfterRace,
       history: [
         ...game.history,
         {
@@ -80,6 +99,11 @@ export function ResultsScreen({
     let promoted = false
     let nextCatName: string | null = null
     let sponsorSeasonBonus = 0
+    let objectiveMet = false
+    let objectiveBonus = 0
+    let confidenceDelta = 0
+    let newConfidence = game.ownerConfidence
+    let fired = false
 
     if (seasonOver) {
       finalStandings = teamStandings({ ...game, points: nextPoints })
@@ -92,6 +116,13 @@ export function ResultsScreen({
         sponsorSeasonBonus = sponsor.seasonBonus
       }
 
+      // Objetivo de la propiedad
+      objectiveMet = finalRank > 0 && finalRank <= game.seasonTarget
+      objectiveBonus = objectiveMet ? Math.round(cat.prizeMoney[0] * 0.6) : 0
+      confidenceDelta = objectiveMet ? 15 : -25
+      newConfidence = Math.max(0, Math.min(100, game.ownerConfidence + confidenceDelta))
+      fired = newConfidence <= 0
+
       let newCat = cat
       let newRivals = game.rivals
       if (next && finalRank > 0 && finalRank <= PROMOTION_RANK) {
@@ -103,9 +134,18 @@ export function ResultsScreen({
         newRivals = improveRivals(rng, game.rivals)
       }
 
+      // Desarrollo pasivo de la fábrica
+      let devCar: PlayerCar = { ...game.car }
+      const devPts = facilityDev(game.facility)
+      const keys: (keyof PlayerCar)[] = ['power', 'aero', 'reliability']
+      for (let i = 0; i < devPts; i++) {
+        const k = keys[i % 3] as 'power' | 'aero' | 'reliability'
+        devCar[k] = Math.min(99, devCar[k] + 1)
+      }
+
       newState = {
         ...newState,
-        money: newState.money + sponsorSeasonBonus,
+        money: newState.money + sponsorSeasonBonus + objectiveBonus,
         season: game.season + 1,
         round: 0,
         points: {},
@@ -115,6 +155,15 @@ export function ResultsScreen({
         market: generateMarket(rng, newCat.rivalLevel),
         sponsor: null,
         sponsorOffers: generateSponsorOffers(rng, newCat.prizeMoney[0]),
+        car: devCar,
+        ownerConfidence: newConfidence,
+        seasonTarget: seasonTargetFor(newCat.id),
+        stats: {
+          ...statsAfterRace,
+          seasonsPlayed: statsAfterRace.seasonsPlayed + 1,
+          titles: statsAfterRace.titles + (finalRank === 1 ? 1 : 0),
+          promotions: statsAfterRace.promotions + (promoted ? 1 : 0),
+        },
       }
     }
 
@@ -124,6 +173,11 @@ export function ResultsScreen({
       costs,
       sponsorRacePayout,
       sponsorSeasonBonus,
+      objectiveMet,
+      objectiveBonus,
+      confidenceDelta,
+      newConfidence,
+      fired,
       newState,
       seasonOver,
       finalStandings,
@@ -134,6 +188,10 @@ export function ResultsScreen({
   }, [])
 
   function handleContinue() {
+    if (summary.fired) {
+      onGameOver()
+      return
+    }
     setGame(summary.newState)
     onContinue()
   }
@@ -249,6 +307,40 @@ export function ResultsScreen({
               )}
             </div>
 
+            <div className="card" style={{ borderColor: summary.fired ? 'var(--bad)' : summary.objectiveMet ? 'var(--good)' : 'var(--warn)' }}>
+              <h2 className="with-ico" style={{ justifyContent: 'flex-start' }}>
+                <Target size={13} /> Objetivo de la propiedad
+              </h2>
+              <div className="row">
+                <span>Meta: acabar {game.seasonTarget}º o mejor</span>
+                <span style={{ color: summary.objectiveMet ? 'var(--good)' : 'var(--bad)', fontWeight: 700 }}>
+                  {summary.objectiveMet ? 'Cumplido' : 'No cumplido'}
+                </span>
+              </div>
+              {summary.objectiveBonus > 0 && (
+                <div className="row" style={{ marginTop: 6 }}>
+                  <span className="muted">Bonus</span>
+                  <span className="money">+<Money v={summary.objectiveBonus} /></span>
+                </div>
+              )}
+              <div className="stat" style={{ marginTop: 12 }}>
+                <div className="stat-label">
+                  <span className="muted">Confianza de la propiedad ({summary.confidenceDelta >= 0 ? '+' : ''}{summary.confidenceDelta})</span>
+                  <b>{summary.newConfidence}%</b>
+                </div>
+                <div className="bar">
+                  <span style={{ width: `${summary.newConfidence}%`, background: summary.newConfidence > 50 ? 'var(--good)' : summary.newConfidence > 25 ? 'var(--warn)' : 'var(--bad)' }} />
+                </div>
+              </div>
+              {summary.fired ? (
+                <p className="with-ico" style={{ color: 'var(--bad)', fontWeight: 700, marginTop: 10 }}>
+                  <Ban size={16} /> Estás despedido. Fin de la partida.
+                </p>
+              ) : summary.newConfidence <= 30 ? (
+                <p className="muted" style={{ marginTop: 10, fontSize: 12 }}>⚠ En la cuerda floja. Otra temporada así y estás fuera.</p>
+              ) : null}
+            </div>
+
             <div className="card">
               <h2>Campeonato de constructores</h2>
               {summary.finalStandings.map((t, i) => (
@@ -272,7 +364,7 @@ export function ResultsScreen({
         )}
 
         <button className="btn primary with-ico" onClick={handleContinue}>
-          Continuar <ChevronRight size={18} />
+          {summary.fired ? 'Volver al menú' : 'Continuar'} <ChevronRight size={18} />
         </button>
       </div>
     </>

@@ -1,10 +1,12 @@
 import { describe, expect, it } from 'vitest'
 import {
+  facilityDiscount,
   generateRivals,
   improveRivals,
   newGame,
   nextCategory,
   playerTeamRank,
+  seasonTargetFor,
   signDriver,
   signSponsor,
   switchPinnacle,
@@ -91,6 +93,14 @@ describe('meta-juego: campeonato y ascenso', () => {
     const g = { ...newGame('Test Racing'), money: 0 }
     const next = signDriver(g, g.market[0].id, 0)
     expect(next).toBeNull()
+  })
+
+  it('la fábrica descuenta más a mayor nivel y el objetivo es más duro en categorías altas', () => {
+    expect(facilityDiscount(1)).toBe(0)
+    expect(facilityDiscount(5)).toBeGreaterThan(facilityDiscount(3))
+    expect(seasonTargetFor('gt4')).toBeGreaterThan(seasonTargetFor('f1'))
+    expect(newGame('T').stats.races).toBe(0)
+    expect(newGame('T').ownerConfidence).toBeGreaterThan(0)
   })
 
   it('firmar patrocinador cobra la prima, fija contrato y vacía las ofertas', () => {

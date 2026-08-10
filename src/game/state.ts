@@ -47,6 +47,17 @@ export interface SeasonResult {
   positions: { entrantId: string; position: number; isPlayer: boolean; name: string }[]
 }
 
+export interface CareerStats {
+  races: number
+  wins: number // victorias (algún coche del jugador P1)
+  podiums: number // podios (algún coche top 3)
+  points: number // puntos de campeonato acumulados
+  bestFinish: number // mejor posición en una carrera (99 = ninguna aún)
+  titles: number // títulos de constructores ganados
+  seasonsPlayed: number
+  promotions: number
+}
+
 export interface GameState {
   teamName: string
   money: number
@@ -62,6 +73,10 @@ export interface GameState {
   sponsorOffers: Sponsor[] // ofertas disponibles a elegir
   points: Record<string, number> // entrantId -> puntos de campeonato (pilotos)
   history: SeasonResult[]
+  stats: CareerStats
+  facility: number // nivel de fábrica (1-5): acelera y abarata el I+D
+  ownerConfidence: number // 0-100: confianza de la propiedad
+  seasonTarget: number // puesto de constructores exigido esta temporada
 }
 
 const SAVE_KEY = 'apex-manager-save-v1'
@@ -70,6 +85,30 @@ export const POINTS_TABLE = [25, 18, 15, 12, 10, 8, 6, 4, 2, 1]
 export const PLAYER_TEAM_ID = 'player'
 export const RIVAL_TEAMS = 5 // 5 rivales × 2 pilotos + 2 del jugador = 12 coches
 export const PROMOTION_RANK = 3 // acabar top-3 de constructores asciende
+export const FACILITY_MAX = 5
+
+export function facilityCost(level: number): number {
+  return 160_000 * level // coste para subir del nivel actual al siguiente
+}
+/** Descuento (0-1) que la fábrica aplica al coste de I+D. */
+export function facilityDiscount(level: number): number {
+  return (level - 1) * 0.09
+}
+/** Puntos de desarrollo pasivo del coche por temporada según la fábrica. */
+export function facilityDev(level: number): number {
+  return level - 1 // niveles 2-5 dan 1-4 puntos/año
+}
+
+/** Puesto de constructores que exige la propiedad según la categoría. */
+export function seasonTargetFor(categoryId: string): number {
+  const cat = CATEGORIES.find((c) => c.id === categoryId)
+  const tier = cat?.tier ?? 1
+  return tier <= 1 ? 5 : tier === 2 ? 4 : tier === 3 ? 3 : 2
+}
+
+function emptyStats(): CareerStats {
+  return { races: 0, wins: 0, podiums: 0, points: 0, bestFinish: 99, titles: 0, seasonsPlayed: 0, promotions: 0 }
+}
 
 function uid(prefix: string, rng: () => number): string {
   return `${prefix}-${Math.floor(rng() * 1e9).toString(36)}`
@@ -210,6 +249,10 @@ export function newGame(teamName: string): GameState {
     sponsorOffers: generateSponsorOffers(rng, cat.prizeMoney[0]),
     points: {},
     history: [],
+    stats: emptyStats(),
+    facility: 1,
+    ownerConfidence: 60,
+    seasonTarget: seasonTargetFor(cat.id),
   }
 }
 
@@ -298,6 +341,10 @@ export function loadGame(): GameState | null {
     if (!state.sponsorOffers) {
       state.sponsorOffers = state.sponsor ? [] : generateSponsorOffers(makeRng(state.season * 6151 + 5), cat.prizeMoney[0])
     }
+    if (!state.stats) state.stats = emptyStats()
+    if (typeof state.facility !== 'number') state.facility = 1
+    if (typeof state.ownerConfidence !== 'number') state.ownerConfidence = 60
+    if (typeof state.seasonTarget !== 'number') state.seasonTarget = seasonTargetFor(state.categoryId)
     return state
   } catch {
     return null
@@ -342,5 +389,6 @@ export function switchPinnacle(state: GameState, rng: () => number): GameState |
     market: generateMarket(rng, twin.rivalLevel),
     sponsor: null,
     sponsorOffers: generateSponsorOffers(rng, twin.prizeMoney[0]),
+    seasonTarget: seasonTargetFor(twin.id),
   }
 }

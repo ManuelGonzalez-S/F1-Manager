@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import type { GameState } from '../game/state'
-import { hasSave, loadGame, saveGame, switchPinnacle, twinCategory } from '../game/state'
+import { deleteSave, hasSave, loadGame, saveGame, switchPinnacle, twinCategory } from '../game/state'
 import { makeRng } from '../sim/engine'
 import { MenuScreen } from './screens/MenuScreen'
 import { HomeScreen } from './screens/HomeScreen'
@@ -12,8 +12,9 @@ import { StandingsScreen } from './screens/StandingsScreen'
 import { DriverMarketScreen } from './screens/DriverMarketScreen'
 import { SponsorsScreen } from './screens/SponsorsScreen'
 import { CalendarScreen } from './screens/CalendarScreen'
+import { StatsScreen } from './screens/StatsScreen'
 
-export type Screen = 'menu' | 'home' | 'garage' | 'standings' | 'market' | 'sponsors' | 'calendar' | 'race' | 'results'
+export type Screen = 'menu' | 'home' | 'garage' | 'standings' | 'market' | 'sponsors' | 'calendar' | 'stats' | 'race' | 'results'
 
 export function App() {
   const [screen, setScreen] = useState<Screen>('menu')
@@ -61,6 +62,7 @@ export function App() {
           onMarket={() => setScreen('market')}
           onSponsors={() => setScreen('sponsors')}
           onCalendar={() => setScreen('calendar')}
+          onStats={() => setScreen('stats')}
           onSwitchChampionship={handleSwitchChampionship}
           onRace={() => setScreen('race')}
           onQuit={() => setScreen('menu')}
@@ -81,6 +83,9 @@ export function App() {
       {screen === 'calendar' && game && (
         <CalendarScreen game={game} setGame={setGame} onBack={() => setScreen('home')} />
       )}
+      {screen === 'stats' && game && (
+        <StatsScreen game={game} onBack={() => setScreen('home')} />
+      )}
       {screen === 'race' && game && (
         <RaceScreen
           game={game}
@@ -96,6 +101,11 @@ export function App() {
           outcome={outcome}
           setGame={setGame}
           onContinue={() => setScreen('home')}
+          onGameOver={() => {
+            deleteSave()
+            setGame(null)
+            setScreen('menu')
+          }}
         />
       )}
     </div>

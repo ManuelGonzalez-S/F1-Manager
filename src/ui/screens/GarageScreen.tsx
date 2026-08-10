@@ -1,6 +1,7 @@
-import { Wrench, Gauge, Wind, ShieldCheck, ArrowLeft } from 'lucide-react'
+import { Wrench, Gauge, Wind, ShieldCheck, ArrowLeft, Factory } from 'lucide-react'
 import type { LucideIcon } from 'lucide-react'
 import type { GameState } from '../../game/state'
+import { FACILITY_MAX, facilityCost, facilityDev, facilityDiscount } from '../../game/state'
 import { upgradeOptions } from '../../game/weekend'
 import { Money } from '../components/Money'
 import { RatingBadge } from '../components/RatingBadge'
@@ -31,6 +32,13 @@ export function GarageScreen({
       money: game.money - cost,
       car: { ...game.car, [key]: Math.min(99, game.car[key] + gain) },
     })
+  }
+
+  const facCost = facilityCost(game.facility)
+  const facMaxed = game.facility >= FACILITY_MAX
+  function upgradeFacility() {
+    if (facMaxed || game.money < facCost) return
+    setGame({ ...game, money: game.money - facCost, facility: game.facility + 1 })
   }
 
   return (
@@ -85,6 +93,28 @@ export function GarageScreen({
               </div>
             )
           })}
+        </div>
+
+        <div className="card">
+          <h2 className="with-ico" style={{ justifyContent: 'flex-start' }}>
+            <Factory size={14} color="var(--accent-2)" /> Fábrica · Nivel {game.facility}
+          </h2>
+          <p className="muted" style={{ marginBottom: 12 }}>
+            Mejora las instalaciones para <b>abaratar el I+D</b> ({Math.round(facilityDiscount(game.facility) * 100)}% de descuento) y
+            desarrollar el coche solo entre temporadas (<b>+{facilityDev(game.facility)}</b>/año).
+          </p>
+          <div className="stat" style={{ marginBottom: 10 }}>
+            <div className="stat-label">
+              <span className="muted">Nivel de fábrica</span>
+              <b>{game.facility}/{FACILITY_MAX}</b>
+            </div>
+            <div className="bar">
+              <span style={{ width: `${(game.facility / FACILITY_MAX) * 100}%` }} />
+            </div>
+          </div>
+          <button className="btn sm" style={{ width: '100%' }} disabled={facMaxed || game.money < facCost} onClick={upgradeFacility}>
+            {facMaxed ? 'Fábrica al máximo' : <>Ampliar fábrica · <Money v={facCost} /></>}
+          </button>
         </div>
 
         <button className="btn ghost with-ico" onClick={onBack}>
