@@ -127,6 +127,7 @@ export function createRace(
     retired: false,
     gapToLeader: 0,
     lastLapTime: 0,
+    lastRadioLap: -5,
   }))
   return {
     track,
@@ -163,6 +164,21 @@ function decideRivalPit(e: LiveEntrant, wetness: number, lapsLeft: number, rng: 
   return null
 }
 
+const RADIO: Record<string, string[]> = {
+  pit: ['Gomas nuevas montadas, ¡a por ellos!', 'Neumáticos frescos, recuperemos posiciones.', 'Buena parada, vamos a atacar.'],
+  wear: ['Las gomas están fritas, pierdo agarre.', 'No me quedan neumáticos, hay que parar ya.', 'Se me van las ruedas, necesito boxes.'],
+  rainStart: ['Está empezando a llover ahí fuera.', 'Cae agua, ¿montamos lluvia?', 'La pista se moja, ojo con esto.'],
+  rainStop: ['La pista se está secando.', 'Ya casi no llueve, pronto tocarán slicks.'],
+  gain: ['¡Dentro! Posición ganada.', '¡Le he pasado!', 'Vamos hacia arriba, buen ritmo.'],
+  lose: ['Me han adelantado, necesito más ritmo.', 'He perdido una posición ahí.', 'No puedo defender, voy justo.'],
+  lastLap: ['Última vuelta, apretando al máximo.', 'Aguanto la posición hasta bandera.'],
+}
+
+function radioLine(kind: keyof typeof RADIO, rng: () => number): string {
+  const pool = RADIO[kind]
+  return pool[Math.floor(rng() * pool.length)]
+}
+
 /** Avanza la carrera una vuelta. Muta y devuelve un nuevo RaceState. */
 export function simulateLap(state: RaceState, rng: () => number): RaceState {
   if (state.finished) return state
@@ -181,13 +197,17 @@ export function simulateLap(state: RaceState, rng: () => number): RaceState {
 
   // Evolución del clima
   const weather: WeatherState = { ...state.weather }
+  let rainStarted = false
+  let rainStopped = false
   if (weather.raining) {
     if (rng() < 0.07) {
       weather.raining = false
+      rainStopped = true
       events.push({ lap, kind: 'weather', message: 'Deja de llover, la pista se seca.' })
     }
   } else if (rng() < track.rainChance * 0.12) {
     weather.raining = true
+    rainStarted = true
     events.push({ lap, kind: 'weather', message: '¡Empieza a llover!' })
   }
   const wetTarget = weather.raining ? 1 : 0
@@ -195,6 +215,8 @@ export function simulateLap(state: RaceState, rng: () => number): RaceState {
   weather.wetness = Math.max(0, Math.min(1, weather.wetness))
 
   const lapsLeft = state.totalLaps - lap
+  const prevPositions = new Map(state.entrants.map((e) => [e.id, e.position]))
+  const pitted = new Set<string>()
 
   for (const e of state.entrants) {
     if (e.retired) continue
@@ -230,6 +252,7 @@ export function simulateLap(state: RaceState, rng: () => number): RaceState {
       e.pitStops += 1
       e.pendingPit = null
       e.totalTime += track.pitLoss * (underSC ? 0.55 : 1) // parar con SC cuesta menos
+      pitted.add(e.id)
       events.push({ lap, kind: 'pit', entrantId: e.id, message: `${e.name} para a boxes.` })
     }
 
@@ -282,6 +305,38 @@ export function simulateLap(state: RaceState, rng: () => number): RaceState {
   retired.forEach((e, i) => {
     e.position = active.length + i + 1
   })
+
+  // Radio del piloto (solo coches del jugador)
+  for (const e of state.entrants) {
+    if (!e.isPlayer || e.retired) continue
+    const throttled = lap - e.lastRadioLap < 2
+    const wearFrac = tyreWearFraction(e.tyre, e.tyreAge, e.driver.tyreManagement, e.mode)
+    const dropped = (prevPositions.get(e.id) ?? e.position) - e.position < 0
+    let kind: keyof typeof RADIO | null = null
+    let forced = false
+    if (pitted.has(e.id)) {
+      kind = 'pit'
+      forced = true
+    } else if (rainStarted) {
+      kind = 'rainStart'
+      forced = true
+    } else if (rainStopped) {
+      kind = 'rainStop'
+      forced = true
+    } else if (throttled) {
+      kind = null
+    } else if (wearFrac >= 0.9) {
+      kind = 'wear'
+    } else if (lap === state.totalLaps && e.position <= 5) {
+      kind = 'lastLap'
+    } else if (dropped && rng() < 0.5) {
+      kind = 'lose'
+    }
+    if (kind && (forced || kind === 'wear' || rng() < 0.7)) {
+      events.push({ lap, kind: 'radio', entrantId: e.id, message: `${e.name.split(' ')[0]}: ${radioLine(kind, rng)}` })
+      e.lastRadioLap = lap
+    }
+  }
 
   state.entrants = [...active, ...retired]
   state.lap = lap

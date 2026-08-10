@@ -15,6 +15,7 @@ import {
   SkipForward,
   Gauge,
   ChevronRight,
+  Radio,
 } from 'lucide-react'
 import type { LucideIcon } from 'lucide-react'
 import type { GameState } from '../../game/state'
@@ -35,6 +36,7 @@ import {
 import { buildField } from '../../game/weekend'
 import { COMPOUND_COLOR, COMPOUND_LABEL } from '../../sim/tyres'
 import { TyreBadge } from '../components/TyreBadge'
+import { TrackMap } from '../components/TrackMap'
 
 export interface RaceOutcome {
   trackName: string
@@ -252,6 +254,9 @@ export function RaceScreen({ game, onFinish }: { game: GameState; onFinish: (o: 
         {phase === 'grid' && (
           <div className="card fade-in">
             <h2>Estrategia de salida</h2>
+            <div className="track-map-frame" style={{ marginTop: 0 }}>
+              <TrackMap trackId={track.id} height={110} />
+            </div>
             <div className="row" style={{ marginBottom: 10 }}>
               <span className="muted">Parte meteorológico</span>
               <WeatherBadge weather={race.weather} />
@@ -290,9 +295,10 @@ export function RaceScreen({ game, onFinish }: { game: GameState; onFinish: (o: 
         {recentEvents.length > 0 && (
           <div style={{ marginBottom: 12 }}>
             {recentEvents.map((ev, i) => (
-              <div className="event-flash" key={`${ev.lap}-${i}`}>
+              <div className={`event-flash ${ev.kind === 'radio' ? 'radio' : ''}`} key={`${ev.lap}-${i}`}>
                 <EventIcon ev={ev} />
-                <span className="muted">V{ev.lap}</span> {ev.message}
+                <span className="muted">V{ev.lap}</span>
+                <span className={ev.kind === 'radio' ? 'radio-msg' : ''}>{ev.message}</span>
               </div>
             ))}
           </div>
@@ -527,6 +533,7 @@ function EventIcon({ ev }: { ev: { kind: string; message: string } }) {
     safetycar: { Icon: TriangleAlert, color: 'var(--warn)' },
     finish: { Icon: Flag, color: 'var(--text)' },
     info: { Icon: Info, color: 'var(--text-dim)' },
+    radio: { Icon: Radio, color: 'var(--warn)' },
   }
   let entry = map[ev.kind] ?? map.info
   if (ev.kind === 'weather') {

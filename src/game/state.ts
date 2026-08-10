@@ -240,6 +240,27 @@ export function playerTeamRank(state: GameState): number {
   return teamStandings(state).findIndex((t) => t.isPlayer) + 1
 }
 
+export interface DriverStanding {
+  id: string
+  name: string
+  team: string
+  isPlayer: boolean
+  points: number
+}
+
+export function driverStandings(state: GameState): DriverStanding[] {
+  const list: DriverStanding[] = []
+  for (const d of state.drivers) {
+    list.push({ id: d.id, name: d.name, team: state.teamName, isPlayer: true, points: state.points[d.id] ?? 0 })
+  }
+  for (const t of state.rivals) {
+    for (const d of t.drivers) {
+      list.push({ id: d.id, name: d.name, team: t.name, isPlayer: false, points: state.points[d.id] ?? 0 })
+    }
+  }
+  return list.sort((a, b) => b.points - a.points)
+}
+
 export function saveGame(state: GameState): void {
   try {
     localStorage.setItem(SAVE_KEY, JSON.stringify(state))
