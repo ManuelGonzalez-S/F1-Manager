@@ -1,6 +1,8 @@
 import { useState } from 'react'
+import { ChevronRight } from 'lucide-react'
 import { deleteSave, newGame } from '../../game/state'
 import type { GameState } from '../../game/state'
+import { CATEGORIES } from '../../game/data'
 
 export function MenuScreen({
   canContinue,
@@ -28,6 +30,17 @@ export function MenuScreen({
         <div className="logo-sub">Racing Team Manager</div>
       </div>
       <p className="tagline">De GT4 a la gloria. Tu escudería, tus decisiones.</p>
+
+      <div className="ladder">
+        {CATEGORIES.map((c, i) => (
+          <span key={c.id} style={{ display: 'inline-flex', alignItems: 'center', gap: 5 }}>
+            <span className={`ladder-step ${i === 0 ? 'first' : ''} ${i === CATEGORIES.length - 1 ? 'goal' : ''}`}>
+              {c.name.split(' ')[0]}
+            </span>
+            {i < CATEGORIES.length - 1 && <ChevronRight size={13} color="var(--text-dim2)" />}
+          </span>
+        ))}
+      </div>
 
       {!creating ? (
         <div style={{ width: '100%', maxWidth: 320, display: 'flex', flexDirection: 'column', gap: 10 }}>
