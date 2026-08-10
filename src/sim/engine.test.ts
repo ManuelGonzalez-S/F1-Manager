@@ -22,7 +22,7 @@ describe('motor de carrera', () => {
 
   it('una carrera corre hasta la bandera a cuadros', () => {
     const field = [mkEntrant('a', 60), mkEntrant('b', 50), mkEntrant('c', 40)]
-    const q = qualify(field, track, 1)
+    const q = qualify(field, track, 1).setups
     const race = createRace(q, track)
     const rng = makeRng(42)
     let guard = 0
@@ -36,7 +36,7 @@ describe('motor de carrera', () => {
     const runs = 20
     for (let s = 0; s < runs; s++) {
       const field = [mkEntrant('strong', 80), mkEntrant('mid', 55), mkEntrant('weak', 35)]
-      const q = qualify(field, track, s)
+      const q = qualify(field, track, s).setups
       const race = createRace(q, track)
       const rng = makeRng(s * 7 + 1)
       while (!race.finished) simulateLap(race, rng)
@@ -49,7 +49,7 @@ describe('motor de carrera', () => {
 
   it('parar a boxes cambia el neumático y suma una parada', () => {
     const field = [mkEntrant('a', 60, true)]
-    const q = qualify(field, track, 1)
+    const q = qualify(field, track, 1).setups
     const race = createRace(q, track)
     const rng = makeRng(3)
     simulateLap(race, rng)
@@ -66,8 +66,8 @@ describe('motor de carrera', () => {
     const dry = { ...track, rainChance: 0 }
     const soft = [mkEntrant('s', 60, true, 'soft')]
     const hard = [mkEntrant('h', 60, true, 'hard')]
-    const rs = createRace(qualify(soft, dry, 1), dry)
-    const rh = createRace(qualify(hard, dry, 1), dry)
+    const rs = createRace(qualify(soft, dry, 1).setups, dry)
+    const rh = createRace(qualify(hard, dry, 1).setups, dry)
     // rng independiente por carrera con la misma semilla → comparación justa
     const rngS = makeRng(9)
     const rngH = makeRng(9)
@@ -83,7 +83,7 @@ describe('motor de carrera', () => {
   it('una parada programada se ejecuta sola en su vuelta', () => {
     const dry = { ...track, rainChance: 0 }
     const field = [mkEntrant('a', 60, true, 'soft')]
-    const race = createRace(qualify(field, dry, 1), dry)
+    const race = createRace(qualify(field, dry, 1).setups, dry)
     const car = race.entrants[0]
     car.plan = [{ lap: 4, compound: 'hard' }]
     const rng = makeRng(3)
@@ -111,6 +111,20 @@ describe('motor de carrera', () => {
   it('atacar gasta más que cuidar y mejor gestión alarga la vida', () => {
     expect(tyreWearPerLap('medium', 50, 'push')).toBeGreaterThan(tyreWearPerLap('medium', 50, 'conserve'))
     expect(tyreLifeLaps('medium', 80, 'balanced')).toBeGreaterThan(tyreLifeLaps('medium', 40, 'balanced'))
+  })
+
+  it('clasificación: atacar puede fallar; segura nunca falla', () => {
+    const field = [mkEntrant('p', 60, true), mkEntrant('r1', 55), mkEntrant('r2', 50)]
+    let pushMistakes = 0
+    let safeMistakes = 0
+    for (let s = 0; s < 40; s++) {
+      const push = qualify(field, track, s, { p: 'push' })
+      const safe = qualify(field, track, s, { p: 'conserve' })
+      if (push.playerNotes['p'].mistake) pushMistakes++
+      if (safe.playerNotes['p'].mistake) safeMistakes++
+    }
+    expect(safeMistakes).toBe(0)
+    expect(pushMistakes).toBeGreaterThan(0)
   })
 
   it('con lluvia el neumático de agua bate al slick; en seco es al revés', () => {

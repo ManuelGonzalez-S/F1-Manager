@@ -21,7 +21,8 @@ import type { LucideIcon } from 'lucide-react'
 import type { GameState } from '../../game/state'
 import { currentCategory } from '../../game/state'
 import { TRACKS } from '../../game/data'
-import type { DriveMode, LiveEntrant, PitPlan, RaceState, TyreCompound, WeatherState } from '../../sim/types'
+import type { DriveMode, EntrantSetup, LiveEntrant, PitPlan, RaceState, TyreCompound, WeatherState } from '../../sim/types'
+import type { QualiResult } from '../../sim/engine'
 import {
   createRace,
   formatGap,
@@ -57,6 +58,11 @@ const MODES: { key: DriveMode; label: string }[] = [
   { key: 'balanced', label: 'Equilibrio' },
   { key: 'conserve', label: 'Cuidar' },
 ]
+const QUALI_MODES: { key: DriveMode; label: string; desc: string }[] = [
+  { key: 'push', label: 'Atacar', desc: 'Vuelta rápida pero con riesgo de error.' },
+  { key: 'balanced', label: 'Equilibrio', desc: 'Vuelta fiable, sin sorpresas.' },
+  { key: 'conserve', label: 'Segura', desc: 'Más lenta, cero riesgo.' },
+]
 const TYRE_OPTIONS: TyreCompound[] = ['soft', 'medium', 'hard', 'wet']
 const ROW_H = 52 // altura de fila de la torre de tiempos (px, incluye separación)
 const TICK_MS = 1200 // duración de la animación de una vuelta a 1×
@@ -73,30 +79,30 @@ export function RaceScreen({ game, onFinish }: { game: GameState; onFinish: (o: 
   const cat = currentCategory(game)
 
   const raceRef = useRef<RaceState | null>(null)
+  const fieldRef = useRef<EntrantSetup[] | null>(null)
+  const weatherRef = useRef<WeatherState>({ raining: false, wetness: 0 })
+  const seedRef = useRef(0)
   const rngRef = useRef<() => number>(() => 0)
   const orderRef = useRef<string[]>([]) // orden estable de filas en el DOM
   const prevTotalsRef = useRef<Record<string, number>>({})
   const progressRef = useRef(0) // 0..1 dentro de la vuelta actual
-  const [phase, setPhase] = useState<'grid' | 'racing' | 'done'>('grid')
+  const [phase, setPhase] = useState<'quali' | 'grid' | 'racing' | 'done'>('quali')
   const [speed, setSpeed] = useState(1)
   const [playing, setPlaying] = useState(false)
+  const [qualiModes, setQualiModes] = useState<Record<string, DriveMode>>({})
+  const [qualiNotes, setQualiNotes] = useState<QualiResult['playerNotes'] | null>(null)
   const [, forceTick] = useState(0)
   const rerender = () => forceTick((n) => n + 1)
 
-  // Inicialización única: parrilla + clasificación
-  if (!raceRef.current) {
+  // Inicialización única: parrilla + parte meteorológico (la clasificación la lanza el jugador)
+  if (!fieldRef.current) {
     const seed = (game.season * 1000 + game.round * 37 + track.name.length * 13) >>> 0
-    const field = buildField(game, seed)
-    const qualified = qualify(field, track, seed + 1)
-    const weather = rollInitialWeather(track, makeRng(seed + 3))
-    const race = createRace(qualified, track, weather)
-    raceRef.current = race
-    rngRef.current = makeRng(seed + 2)
-    orderRef.current = race.entrants.map((e) => e.id)
-    prevTotalsRef.current = Object.fromEntries(race.entrants.map((e) => [e.id, e.totalTime]))
+    seedRef.current = seed
+    fieldRef.current = buildField(game, seed)
+    weatherRef.current = rollInitialWeather(track, makeRng(seed + 3))
   }
 
-  const race = raceRef.current
+  const race = raceRef.current!
 
   // Bucle de animación en tiempo real (requestAnimationFrame)
   useEffect(() => {
@@ -220,6 +226,76 @@ export function RaceScreen({ game, onFinish }: { game: GameState; onFinish: (o: 
     })
   }
 
+  // ---- Clasificación jugable ----
+  function runQuali() {
+    const field = fieldRef.current!
+    const seed = seedRef.current
+    const res = qualify(field, track, seed + 1, qualiModes)
+    const r = createRace(res.setups, track, weatherRef.current)
+    raceRef.current = r
+    rngRef.current = makeRng(seed + 2)
+    orderRef.current = r.entrants.map((e) => e.id)
+    prevTotalsRef.current = Object.fromEntries(r.entrants.map((e) => [e.id, e.totalTime]))
+    setQualiNotes(res.playerNotes)
+    setPhase('grid')
+  }
+
+  if (phase === 'quali' || !raceRef.current) {
+    const qplayers = (fieldRef.current ?? []).filter((e) => e.isPlayer)
+    return (
+      <>
+        <div className="topbar">
+          <div className="col">
+            <h1>
+              {track.country} {track.name}
+            </h1>
+            <span className="muted">{cat.name} · Clasificación</span>
+          </div>
+          <WeatherBadge weather={weatherRef.current} />
+        </div>
+        <div className="screen">
+          <div className="card fade-in">
+            <h2>Clasificación</h2>
+            <div className="track-map-frame" style={{ marginTop: 0 }}>
+              <TrackMap trackId={track.id} height={110} />
+            </div>
+            <p className="muted" style={{ marginBottom: 4 }}>
+              Elige cómo aborda cada piloto su vuelta rápida. <b>Atacar</b> puede darte una gran posición… o un error que te
+              hunda en la parrilla.
+            </p>
+          </div>
+
+          {qplayers.map((p) => {
+            const mode = qualiModes[p.id] ?? 'balanced'
+            return (
+              <div className="pit-panel player-accent" key={p.id}>
+                <div className="row">
+                  <h3>{p.name}</h3>
+                  <span className="muted" style={{ fontSize: 12 }}>Consist. {p.driver.consistency}</span>
+                </div>
+                <div className="mode-seg" style={{ marginTop: 10 }}>
+                  {QUALI_MODES.map((m) => (
+                    <button key={m.key} className={mode === m.key ? 'on' : ''} onClick={() => setQualiModes((s) => ({ ...s, [p.id]: m.key }))}>
+                      {m.label}
+                    </button>
+                  ))}
+                </div>
+                <p className="muted" style={{ fontSize: 12, marginTop: 8 }}>
+                  {QUALI_MODES.find((m) => m.key === mode)!.desc}
+                </p>
+              </div>
+            )
+          })}
+        </div>
+        <div className="sim-controls">
+          <button className="btn primary with-ico" onClick={runQuali}>
+            <Flag size={18} /> Hacer la vuelta rápida
+          </button>
+        </div>
+      </>
+    )
+  }
+
   // ---- Cálculo del estado visual interpolado ----
   const t = Math.max(0, Math.min(1, progressRef.current))
   const rows = race.entrants.map((e) => {
@@ -261,7 +337,26 @@ export function RaceScreen({ game, onFinish }: { game: GameState; onFinish: (o: 
               <span className="muted">Parte meteorológico</span>
               <WeatherBadge weather={race.weather} />
             </div>
-            <p className="muted" style={{ marginBottom: 12 }}>
+            {qualiNotes && (
+              <div className="quali-result">
+                {players.map((p) => {
+                  const n = qualiNotes[p.id]
+                  if (!n) return null
+                  return (
+                    <div className="row" key={p.id} style={{ padding: '4px 0' }}>
+                      <span className="with-ico" style={{ justifyContent: 'flex-start', gap: 8 }}>
+                        <span className={`pos-badge ${n.pos <= 3 ? `p${n.pos}` : ''}`} style={{ width: 24, height: 24, fontSize: 12 }}>{n.pos}</span>
+                        {p.name.split(' ')[0]}
+                      </span>
+                      <span className="muted" style={{ fontSize: 12 }}>
+                        {n.mistake ? '⚠ error en la vuelta' : n.mode === 'push' ? 'vuelta al límite' : n.mode === 'conserve' ? 'vuelta segura' : 'vuelta limpia'}
+                      </span>
+                    </div>
+                  )
+                })}
+              </div>
+            )}
+            <p className="muted" style={{ margin: '10px 0 12px' }}>
               Elige el <b>neumático de salida</b> y planifica tus <b>paradas</b>. Podrás cambiar todo en vivo durante la carrera.
             </p>
             {players.map((p) => (

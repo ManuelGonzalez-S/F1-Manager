@@ -96,6 +96,11 @@ export const TRACKS: Track[] = [
   { id: 'indianapolis', name: 'Indianápolis', country: '🇺🇸', laps: 17, baseLapTime: 74.0, powerBias: 0.55, pitLoss: 20, safetyCarChance: 0.1, rainChance: 0.15 },
   { id: 'kyalami', name: 'Kyalami', country: '🇿🇦', laps: 17, baseLapTime: 80.0, powerBias: 0.5, pitLoss: 21, safetyCarChance: 0.08, rainChance: 0.15 },
   { id: 'watkinsglen', name: 'Watkins Glen', country: '🇺🇸', laps: 17, baseLapTime: 78.0, powerBias: 0.5, pitLoss: 21, safetyCarChance: 0.09, rainChance: 0.2 },
+  { id: 'montreal', name: 'Gilles-Villeneuve', country: '🇨🇦', laps: 17, baseLapTime: 74.0, powerBias: 0.6, pitLoss: 20, safetyCarChance: 0.2, rainChance: 0.2 },
+  { id: 'magnycours', name: 'Magny-Cours', country: '🇫🇷', laps: 17, baseLapTime: 78.0, powerBias: 0.5, pitLoss: 21, safetyCarChance: 0.07, rainChance: 0.15 },
+  { id: 'jacarepagua', name: 'Jacarepaguá', country: '🇧🇷', laps: 18, baseLapTime: 75.0, powerBias: 0.5, pitLoss: 20, safetyCarChance: 0.1, rainChance: 0.2 },
+  { id: 'madrid', name: 'Madring', country: '🇪🇸', laps: 17, baseLapTime: 84.0, powerBias: 0.5, pitLoss: 21, safetyCarChance: 0.09, rainChance: 0.1 },
+  { id: 'buenosaires', name: 'Buenos Aires', country: '🇦🇷', laps: 18, baseLapTime: 76.0, powerBias: 0.5, pitLoss: 20, safetyCarChance: 0.1, rainChance: 0.15 },
 ]
 
 // ---- Generación de nombres para rivales y pilotos ficticios ----
