@@ -1,4 +1,4 @@
-import { Trophy, Users, Handshake, Wrench, Menu, ChevronRight, CalendarDays, Repeat } from 'lucide-react'
+import { Trophy, Users, Handshake, Wrench, Menu, ChevronRight, CalendarDays, Repeat, Target, Award } from 'lucide-react'
 import type { GameState } from '../../game/state'
 import { currentCategory, driverOverall, twinCategory } from '../../game/state'
 import { TRACKS } from '../../game/data'
@@ -13,6 +13,7 @@ export function HomeScreen({
   onMarket,
   onSponsors,
   onCalendar,
+  onStats,
   onSwitchChampionship,
   onRace,
   onQuit,
@@ -23,6 +24,7 @@ export function HomeScreen({
   onMarket: () => void
   onSponsors: () => void
   onCalendar: () => void
+  onStats: () => void
   onSwitchChampionship: () => void
   onRace: () => void
   onQuit: () => void
@@ -78,6 +80,24 @@ export function HomeScreen({
           )}
         </div>
 
+        <div className="card">
+          <div className="row" style={{ marginBottom: 10 }}>
+            <span className="with-ico" style={{ justifyContent: 'flex-start', fontWeight: 700 }}>
+              <Target size={16} color="var(--accent-2)" /> Objetivo
+            </span>
+            <span className="muted">Acabar {game.seasonTarget}º o mejor</span>
+          </div>
+          <div className="stat" style={{ marginBottom: 0 }}>
+            <div className="stat-label">
+              <span className="muted">Confianza de la propiedad</span>
+              <b>{game.ownerConfidence}%</b>
+            </div>
+            <div className="bar">
+              <span style={{ width: `${game.ownerConfidence}%`, background: game.ownerConfidence > 50 ? 'var(--good)' : game.ownerConfidence > 25 ? 'var(--warn)' : 'var(--bad)' }} />
+            </div>
+          </div>
+        </div>
+
         {!game.sponsor && (
           <div className="card" style={{ borderColor: 'rgba(232, 201, 58, 0.4)' }}>
             <div className="row">
@@ -114,6 +134,7 @@ export function HomeScreen({
           <button className="nav-tile" onClick={onMarket}><Users className="ic" size={20} /> Mercado</button>
           <button className="nav-tile" onClick={onSponsors}><Handshake className="ic" size={20} /> Patrocinadores</button>
           <button className="nav-tile" onClick={onGarage}><Wrench className="ic" size={20} /> Garaje / I+D</button>
+          <button className="nav-tile" onClick={onStats}><Award className="ic" size={20} /> Palmarés</button>
         </div>
 
         <div className="card">

@@ -332,12 +332,14 @@ export function RaceScreen({ game, onFinish }: { game: GameState; onFinish: (o: 
     .map((e) => {
       const ri = info.get(e.id)!
       const frac = t - ri.gap / lapRef
+      const labelled = e.isPlayer || ri.leader
       return {
         id: e.id,
         frac,
         color: e.isPlayer ? 'var(--accent-2)' : ri.leader ? 'var(--gold)' : 'var(--text-dim)',
-        size: e.isPlayer ? 5 : 3.5,
+        size: labelled ? 6.5 : 3.5,
         z: e.isPlayer ? 2 : ri.leader ? 1 : 0,
+        label: labelled ? `${ri.rank + 1}` : undefined,
       }
     })
 
@@ -416,8 +418,9 @@ export function RaceScreen({ game, onFinish }: { game: GameState; onFinish: (o: 
               <WeatherBadge weather={race.weather} />
             </div>
 
-            <div className="track-map-frame" style={{ margin: 0 }}>
-              <RaceTrackMap trackId={track.id} dots={dots} height={132} />
+            <div className="track-map-frame" style={{ margin: 0, position: 'relative' }}>
+              <RaceTrackMap trackId={track.id} dots={dots} height={132} wetness={race.weather.wetness} />
+              {race.weather.wetness > 0.15 && <div className="rain-overlay" />}
             </div>
 
             {recentEvents[0] && (

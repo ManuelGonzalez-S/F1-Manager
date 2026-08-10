@@ -1,6 +1,7 @@
 import type { EntrantSetup, TyreCompound } from '../sim/types'
 import { makeRng } from '../sim/engine'
 import type { GameState } from './state'
+import { facilityDiscount } from './state'
 
 /** Construye la parrilla: los 2 coches del jugador + los pilotos rivales persistentes. */
 export function buildField(state: GameState, seed: number): EntrantSetup[] {
@@ -48,7 +49,8 @@ export interface UpgradePath {
 }
 
 export function upgradeOptions(state: GameState): UpgradePath[] {
-  const cost = (v: number) => Math.round(40_000 + v * 3_000)
+  const discount = 1 - facilityDiscount(state.facility ?? 1)
+  const cost = (v: number) => Math.round((40_000 + v * 3_000) * discount)
   return [
     { key: 'power', label: 'Motor (potencia)', cost: cost(state.car.power), gain: 3 },
     { key: 'aero', label: 'Aerodinámica', cost: cost(state.car.aero), gain: 3 },

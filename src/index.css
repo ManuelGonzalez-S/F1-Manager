@@ -390,6 +390,26 @@ body {
   font-size: 11px; font-weight: 700; color: var(--accent-2); margin-top: 5px;
 }
 
+/* ---- Palmarés (stat tiles) ---- */
+.stat-tiles { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; margin-bottom: 14px; }
+.stat-tile {
+  background: linear-gradient(180deg, var(--bg-elev), #11161f);
+  border: 1px solid var(--line); border-radius: 14px; padding: 14px 8px;
+  display: flex; flex-direction: column; align-items: center; gap: 4px; box-shadow: var(--shadow-sm);
+}
+.stat-tile .st-value { font-size: 22px; font-weight: 900; font-variant-numeric: tabular-nums; letter-spacing: -0.5px; }
+.stat-tile .st-label { font-size: 10.5px; color: var(--text-dim); text-transform: uppercase; letter-spacing: 0.5px; text-align: center; }
+
+/* ---- Lluvia sobre el mapa en vivo ---- */
+.rain-overlay {
+  position: absolute; inset: 0; border-radius: 12px; pointer-events: none; overflow: hidden;
+  background-image: repeating-linear-gradient(105deg, rgba(120, 180, 240, 0.14) 0 1px, transparent 1px 7px);
+  background-size: 22px 22px;
+  animation: rainmove 0.5s linear infinite;
+  opacity: 0.7;
+}
+@keyframes rainmove { to { background-position: -22px 22px; } }
+
 /* ---- Mapa de circuito ---- */
 .track-map-frame {
   margin: 12px 0;
