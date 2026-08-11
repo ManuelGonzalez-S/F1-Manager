@@ -13,13 +13,15 @@ import { DriverMarketScreen } from './screens/DriverMarketScreen'
 import { SponsorsScreen } from './screens/SponsorsScreen'
 import { CalendarScreen } from './screens/CalendarScreen'
 import { StatsScreen } from './screens/StatsScreen'
+import { SettingsScreen } from './screens/SettingsScreen'
 
-export type Screen = 'menu' | 'home' | 'garage' | 'standings' | 'market' | 'sponsors' | 'calendar' | 'stats' | 'race' | 'results'
+export type Screen = 'menu' | 'home' | 'garage' | 'standings' | 'market' | 'sponsors' | 'calendar' | 'stats' | 'settings' | 'race' | 'results'
 
 export function App() {
   const [screen, setScreen] = useState<Screen>('menu')
   const [game, setGame] = useState<GameState | null>(null)
   const [outcome, setOutcome] = useState<RaceOutcome | null>(null)
+  const [settingsReturn, setSettingsReturn] = useState<Screen>('menu')
 
   // Auto-guardado cuando cambia el estado del juego
   useEffect(() => {
@@ -52,7 +54,15 @@ export function App() {
   return (
     <div className="app">
       {screen === 'menu' && (
-        <MenuScreen canContinue={hasSave()} onContinue={handleContinue} onNewGame={handleNewGame} />
+        <MenuScreen
+          canContinue={hasSave()}
+          onContinue={handleContinue}
+          onNewGame={handleNewGame}
+          onSettings={() => {
+            setSettingsReturn('menu')
+            setScreen('settings')
+          }}
+        />
       )}
       {screen === 'home' && game && (
         <HomeScreen
@@ -63,6 +73,10 @@ export function App() {
           onSponsors={() => setScreen('sponsors')}
           onCalendar={() => setScreen('calendar')}
           onStats={() => setScreen('stats')}
+          onSettings={() => {
+            setSettingsReturn('home')
+            setScreen('settings')
+          }}
           onSwitchChampionship={handleSwitchChampionship}
           onRace={() => setScreen('race')}
           onQuit={() => setScreen('menu')}
@@ -85,6 +99,9 @@ export function App() {
       )}
       {screen === 'stats' && game && (
         <StatsScreen game={game} onBack={() => setScreen('home')} />
+      )}
+      {screen === 'settings' && (
+        <SettingsScreen onBack={() => setScreen(settingsReturn)} />
       )}
       {screen === 'race' && game && (
         <RaceScreen

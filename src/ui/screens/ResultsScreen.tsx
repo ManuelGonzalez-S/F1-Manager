@@ -5,6 +5,7 @@ import {
   PROMOTION_RANK,
   currentCategory,
   facilityDev,
+  modsOf,
   generateMarket,
   generateRivals,
   generateSponsorOffers,
@@ -37,6 +38,7 @@ export function ResultsScreen({
 
   // Calcular premios/puntos una sola vez y aplicar al estado.
   const summary = useMemo(() => {
+    const mods = modsOf(game)
     const playerResults = outcome.results.filter((r) => r.isPlayer)
     let prize = 0
     const nextPoints = { ...game.points }
@@ -49,7 +51,10 @@ export function ResultsScreen({
         prize += cat.prizeMoney[r.position - 1] ?? 5_000
       }
     }
-    const costs = 25_000 + game.drivers.reduce((s, d) => s + Math.round(d.salary / game.calendar.length), 0)
+    prize = Math.round(prize * mods.prizeMult)
+    const costs = Math.round(
+      (25_000 + game.drivers.reduce((s, d) => s + Math.round(d.salary / game.calendar.length), 0)) * mods.costMult,
+    )
 
     // Bono de patrocinador por carrera (si el mejor coche cumple el objetivo)
     const bestFinish = Math.min(...outcome.results.filter((r) => r.isPlayer && !r.retired).map((r) => r.position), 99)
@@ -118,8 +123,8 @@ export function ResultsScreen({
 
       // Objetivo de la propiedad
       objectiveMet = finalRank > 0 && finalRank <= game.seasonTarget
-      objectiveBonus = objectiveMet ? Math.round(cat.prizeMoney[0] * 0.6) : 0
-      confidenceDelta = objectiveMet ? 15 : -25
+      objectiveBonus = objectiveMet ? Math.round(cat.prizeMoney[0] * 0.6 * mods.prizeMult) : 0
+      confidenceDelta = objectiveMet ? mods.metDelta : mods.failDelta
       newConfidence = Math.max(0, Math.min(100, game.ownerConfidence + confidenceDelta))
       fired = newConfidence <= 0
 
@@ -129,7 +134,7 @@ export function ResultsScreen({
         promoted = true
         newCat = next
         nextCatName = next.name
-        newRivals = generateRivals(rng, next.rivalLevel)
+        newRivals = generateRivals(rng, next.rivalLevel + mods.rivalOffset)
       } else {
         newRivals = improveRivals(rng, game.rivals)
       }
@@ -152,7 +157,7 @@ export function ResultsScreen({
         categoryId: newCat.id,
         calendar: promoted ? [...newCat.defaultCalendar] : [...game.calendar],
         rivals: newRivals,
-        market: generateMarket(rng, newCat.rivalLevel),
+        market: generateMarket(rng, newCat.rivalLevel + mods.rivalOffset),
         sponsor: null,
         sponsorOffers: generateSponsorOffers(rng, newCat.prizeMoney[0]),
         car: devCar,

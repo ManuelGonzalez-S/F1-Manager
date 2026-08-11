@@ -35,6 +35,7 @@ import {
   tyreWearPerLap,
 } from '../../sim/engine'
 import { buildField } from '../../game/weekend'
+import { loadSettings, TEMPO_MS } from '../../game/settings'
 import { COMPOUND_COLOR, COMPOUND_LABEL } from '../../sim/tyres'
 import { TyreBadge } from '../components/TyreBadge'
 import { TrackMap } from '../components/TrackMap'
@@ -67,7 +68,6 @@ const QUALI_MODES: { key: DriveMode; label: string; desc: string }[] = [
 ]
 const TYRE_OPTIONS: TyreCompound[] = ['soft', 'medium', 'hard', 'wet']
 const ROW_H = 46 // altura de fila de la torre de tiempos (px, incluye separación)
-const TICK_MS = 2200 // duración de la animación de una vuelta a 1× (más pausado)
 
 interface RowInfo {
   rank: number
@@ -80,6 +80,7 @@ export function RaceScreen({ game, onFinish }: { game: GameState; onFinish: (o: 
   const track = TRACKS.find((t) => t.id === game.calendar[game.round])!
   const cat = currentCategory(game)
 
+  const settingsRef = useRef(loadSettings())
   const raceRef = useRef<RaceState | null>(null)
   const fieldRef = useRef<EntrantSetup[] | null>(null)
   const weatherRef = useRef<WeatherState>({ raining: false, wetness: 0 })
@@ -117,14 +118,14 @@ export function RaceScreen({ game, onFinish }: { game: GameState; onFinish: (o: 
       if (last == null) last = ts
       const dt = ts - last
       last = ts
-      progressRef.current += dt / (TICK_MS / speed)
+      progressRef.current += dt / (TEMPO_MS[settingsRef.current.tempo] / speed)
       let radioPause = false
       while (progressRef.current >= 1 && !r.finished) {
         prevTotalsRef.current = Object.fromEntries(r.entrants.map((e) => [e.id, e.totalTime]))
         const before = r.events.length
         simulateLap(r, rngRef.current)
         progressRef.current -= 1
-        if (r.events.slice(before).some((e) => e.kind === 'radio')) {
+        if (settingsRef.current.radioPause && r.events.slice(before).some((e) => e.kind === 'radio')) {
           radioPause = true
           break
         }
@@ -328,7 +329,7 @@ export function RaceScreen({ game, onFinish }: { game: GameState; onFinish: (o: 
   // Posición de cada coche alrededor del trazado (para los puntos en el mapa)
   const lapRef = track.baseLapTime
   const dots: CarDot[] = race.entrants
-    .filter((e) => !e.retired)
+    .filter((e) => !e.retired && (settingsRef.current.rivalDots || e.isPlayer || info.get(e.id)?.leader))
     .map((e) => {
       const ri = info.get(e.id)!
       const frac = t - ri.gap / lapRef

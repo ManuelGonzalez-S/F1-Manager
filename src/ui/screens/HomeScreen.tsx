@@ -1,4 +1,4 @@
-import { Trophy, Users, Handshake, Wrench, Menu, ChevronRight, CalendarDays, Repeat, Target, Award } from 'lucide-react'
+import { Trophy, Users, Handshake, Wrench, Menu, ChevronRight, CalendarDays, Repeat, Target, Award, Settings as SettingsIcon } from 'lucide-react'
 import type { GameState } from '../../game/state'
 import { currentCategory, driverOverall, twinCategory } from '../../game/state'
 import { TRACKS } from '../../game/data'
@@ -14,6 +14,7 @@ export function HomeScreen({
   onSponsors,
   onCalendar,
   onStats,
+  onSettings,
   onSwitchChampionship,
   onRace,
   onQuit,
@@ -25,6 +26,7 @@ export function HomeScreen({
   onSponsors: () => void
   onCalendar: () => void
   onStats: () => void
+  onSettings: () => void
   onSwitchChampionship: () => void
   onRace: () => void
   onQuit: () => void
@@ -47,9 +49,14 @@ export function HomeScreen({
           <span className="money-chip">
             <Money v={game.money} />
           </span>
-          <button className="btn ghost sm with-ico" onClick={onQuit}>
-            <Menu size={15} /> Menú
-          </button>
+          <div className="btn-group">
+            <button className="btn ghost sm with-ico" onClick={onSettings} aria-label="Ajustes">
+              <SettingsIcon size={15} />
+            </button>
+            <button className="btn ghost sm with-ico" onClick={onQuit}>
+              <Menu size={15} /> Menú
+            </button>
+          </div>
         </div>
       </div>
 
