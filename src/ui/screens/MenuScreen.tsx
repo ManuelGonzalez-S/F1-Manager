@@ -1,24 +1,31 @@
 import { useState } from 'react'
-import { ChevronRight } from 'lucide-react'
-import { deleteSave, newGame } from '../../game/state'
-import type { GameState } from '../../game/state'
+import { ChevronRight, Settings as SettingsIcon } from 'lucide-react'
+import { newGame, DIFFICULTY } from '../../game/state'
+import type { GameState, Difficulty } from '../../game/state'
 import { CATEGORIES } from '../../game/data'
+import { loadSettings, saveSettings } from '../../game/settings'
+
+const DIFFS: Difficulty[] = ['easy', 'normal', 'hard']
 
 export function MenuScreen({
   canContinue,
   onContinue,
   onNewGame,
+  onSettings,
 }: {
   canContinue: boolean
   onContinue: () => void
   onNewGame: (g: GameState) => void
+  onSettings: () => void
 }) {
   const [creating, setCreating] = useState(false)
   const [name, setName] = useState('')
+  const [difficulty, setDifficulty] = useState<Difficulty>(() => loadSettings().difficulty)
 
   function start() {
     const team = name.trim() || 'Apex Racing'
-    onNewGame(newGame(team))
+    saveSettings({ ...loadSettings(), difficulty }) // recuerda la elección
+    onNewGame(newGame(team, difficulty))
   }
 
   return (
@@ -52,17 +59,9 @@ export function MenuScreen({
           <button className="btn" onClick={() => setCreating(true)}>
             Nueva partida
           </button>
-          {canContinue && (
-            <button
-              className="btn ghost"
-              onClick={() => {
-                if (confirm('¿Borrar la partida guardada?')) deleteSave()
-                location.reload()
-              }}
-            >
-              Borrar partida
-            </button>
-          )}
+          <button className="btn ghost with-ico" onClick={onSettings}>
+            <SettingsIcon size={16} /> Ajustes
+          </button>
         </div>
       ) : (
         <div style={{ width: '100%', maxWidth: 320, display: 'flex', flexDirection: 'column', gap: 12 }}>
@@ -73,6 +72,16 @@ export function MenuScreen({
             maxLength={22}
             onChange={(e) => setName(e.target.value)}
           />
+          <div>
+            <div className="muted" style={{ fontSize: 12, marginBottom: 6, textAlign: 'left' }}>Dificultad</div>
+            <div className="mode-seg">
+              {DIFFS.map((k) => (
+                <button key={k} className={difficulty === k ? 'on' : ''} onClick={() => setDifficulty(k)}>
+                  {DIFFICULTY[k].label}
+                </button>
+              ))}
+            </div>
+          </div>
           <button className="btn primary" onClick={start}>
             Empezar en GT4
           </button>

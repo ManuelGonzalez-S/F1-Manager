@@ -58,8 +58,32 @@ export interface CareerStats {
   promotions: number
 }
 
+export type Difficulty = 'easy' | 'normal' | 'hard'
+
+export interface DifficultyMods {
+  label: string
+  rivalOffset: number
+  prizeMult: number
+  costMult: number
+  failDelta: number
+  metDelta: number
+  startMoney: number
+  startConfidence: number
+}
+
+export const DIFFICULTY: Record<Difficulty, DifficultyMods> = {
+  easy: { label: 'Fácil', rivalOffset: -6, prizeMult: 1.25, costMult: 0.8, failDelta: -15, metDelta: 18, startMoney: 700_000, startConfidence: 70 },
+  normal: { label: 'Normal', rivalOffset: 0, prizeMult: 1, costMult: 1, failDelta: -25, metDelta: 15, startMoney: 500_000, startConfidence: 60 },
+  hard: { label: 'Difícil', rivalOffset: 6, prizeMult: 0.85, costMult: 1.15, failDelta: -35, metDelta: 12, startMoney: 350_000, startConfidence: 50 },
+}
+
+export function modsOf(state: GameState): DifficultyMods {
+  return DIFFICULTY[state.difficulty] ?? DIFFICULTY.normal
+}
+
 export interface GameState {
   teamName: string
+  difficulty: Difficulty
   money: number
   categoryId: string
   season: number
@@ -225,9 +249,11 @@ export function generateCalendar(rng: () => number, size = CALENDAR_SIZE): strin
   return ids.slice(0, Math.min(size, ids.length))
 }
 
-export function newGame(teamName: string): GameState {
+export function newGame(teamName: string, difficulty: Difficulty = 'normal'): GameState {
   const rng = makeRng(Date.now() % 2147483647 || 12345)
   const cat = CATEGORIES[0]
+  const mods = DIFFICULTY[difficulty]
+  const rivalLvl = cat.rivalLevel + mods.rivalOffset
   const drivers: Driver[] = [0, 1].map(() => {
     const s = randomDriver(rng, cat.rivalLevel - 3)
     return { id: uid('drv', rng), name: driverName(rng), salary: 40_000, ...s }
@@ -236,22 +262,23 @@ export function newGame(teamName: string): GameState {
   const calendar = [...cat.defaultCalendar]
   return {
     teamName,
-    money: 500_000,
+    difficulty,
+    money: mods.startMoney,
     categoryId: cat.id,
     season: 1,
     round: 0,
     calendar,
     car,
     drivers,
-    rivals: generateRivals(rng, cat.rivalLevel),
-    market: generateMarket(rng, cat.rivalLevel),
+    rivals: generateRivals(rng, rivalLvl),
+    market: generateMarket(rng, rivalLvl),
     sponsor: null,
     sponsorOffers: generateSponsorOffers(rng, cat.prizeMoney[0]),
     points: {},
     history: [],
     stats: emptyStats(),
     facility: 1,
-    ownerConfidence: 60,
+    ownerConfidence: mods.startConfidence,
     seasonTarget: seasonTargetFor(cat.id),
   }
 }
@@ -341,6 +368,7 @@ export function loadGame(): GameState | null {
     if (!state.sponsorOffers) {
       state.sponsorOffers = state.sponsor ? [] : generateSponsorOffers(makeRng(state.season * 6151 + 5), cat.prizeMoney[0])
     }
+    if (!state.difficulty) state.difficulty = 'normal'
     if (!state.stats) state.stats = emptyStats()
     if (typeof state.facility !== 'number') state.facility = 1
     if (typeof state.ownerConfidence !== 'number') state.ownerConfidence = 60
@@ -378,6 +406,7 @@ export function twinCategory(state: GameState) {
 export function switchPinnacle(state: GameState, rng: () => number): GameState | null {
   const twin = twinCategory(state)
   if (!twin) return null
+  const lvl = twin.rivalLevel + modsOf(state).rivalOffset
   return {
     ...state,
     categoryId: twin.id,
@@ -385,8 +414,8 @@ export function switchPinnacle(state: GameState, rng: () => number): GameState |
     round: 0,
     points: {},
     calendar: [...twin.defaultCalendar],
-    rivals: generateRivals(rng, twin.rivalLevel),
-    market: generateMarket(rng, twin.rivalLevel),
+    rivals: generateRivals(rng, lvl),
+    market: generateMarket(rng, lvl),
     sponsor: null,
     sponsorOffers: generateSponsorOffers(rng, twin.prizeMoney[0]),
     seasonTarget: seasonTargetFor(twin.id),
